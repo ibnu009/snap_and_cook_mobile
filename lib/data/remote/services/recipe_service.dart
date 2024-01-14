@@ -12,10 +12,10 @@ abstract class RecipeServices {
   factory RecipeServices(Dio dio) = _RecipeServices;
 
   @GET(RecipeServiceConstants.listRecipe)
-  Future<BaseResponse<List<Recipe>>> getAllRecipes(
+  Future<BaseResponse<List<RecipeModel>>> getAllRecipes(
       @CancelRequest() CancelToken cancelToken);
 
   @GET(RecipeServiceConstants.detailRecipe)
-  Future<BaseResponse<Recipe>> getDetailRecipe(
+  Future<BaseResponse<RecipeModel>> getDetailRecipe(
       @CancelRequest() CancelToken cancelToken, @Path("uuid") String uuid);
 }

@@ -21,6 +21,14 @@ class AppTheme {
       textTheme: TextTheme(
           displaySmall: TTCommonsTextStyles.displayXs.textBold()
       ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColors.heroWhite,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(12.0),
+          ),
+        ),
+      ),
 
       // text button theme
       textButtonTheme: TextButtonThemeData(

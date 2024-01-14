@@ -3,8 +3,15 @@
 import 'dart:ui';
 
 class AppColors {
+  static const Color transparent = Color(0x00f5f5f5);
+  static const Color copper = Color(0xFFE48364);
+
+  static const Color canvas = Color(0xFFF5F5F5);
   static const Color heroWhite = Color(0xFFFFFFFF);
   static const Color heroBlack = Color(0xFF14130E);
+
+  static const Color primary = Color(0xFFAED6d0);
+  static const Color primaryDarker = Color(0xFF6C9790);
 
   static const Color primaryLightGrey = Color(0xFFCCD2D9);
   static const Color primaryLightGrey100 = Color(0xFFCCD2D9);

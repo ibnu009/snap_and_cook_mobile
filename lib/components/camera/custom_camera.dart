@@ -15,26 +15,20 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_gallery/photo_gallery.dart';
 
-class CameraApp extends StatefulWidget {
+class CustomCameraWidget extends StatefulWidget {
   final int? compressionQuality;
 
-  const CameraApp({Key? key, this.compressionQuality = 100}) : super(key: key);
+  const CustomCameraWidget({Key? key, this.compressionQuality = 100}) : super(key: key);
 
   @override
-  CameraAppState createState() => CameraAppState();
+  CustomCameraWidgetState createState() => CustomCameraWidgetState();
 }
 
-class CameraAppState extends State<CameraApp> {
+class CustomCameraWidgetState extends State<CustomCameraWidget> {
   CameraController? controller;
   late List<CameraDescription> cameras;
-  List<Album> imageAlbums = [];
-  Set<Medium> imageMedium = {};
-  Uint8List? bytes;
-  List<File> results = [];
-  List<int> indexList = [];
   bool flashOn = false;
   bool showPerformance = false;
-  late double width;
 
   @override
   void initState() {
@@ -124,7 +118,8 @@ class CameraAppState extends State<CameraApp> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _galleryButton(),
-                    _cameraButton()
+                    _cameraButton(),
+                    SizedBox(width: 25,)
                   ],
                 ),
               ),
@@ -150,7 +145,7 @@ class CameraAppState extends State<CameraApp> {
                               size: 30, color: Colors.white)),
                       IconButton(
                           onPressed: () {
-                            compress([]);
+                            compress(null);
                           },
                           icon: const Icon(
                             Icons.close_rounded,
@@ -177,7 +172,7 @@ class CameraAppState extends State<CameraApp> {
           return;
         }
         File file = File(image.path);
-        compress([file]);
+        compress(file);
       },
       icon: const Icon(Icons.photo_library,
           size: 30, color: Colors.white),
@@ -189,7 +184,7 @@ class CameraAppState extends State<CameraApp> {
       onTap: () async {
         XFile file2 = await controller!.takePicture();
         File file = File(file2.path);
-        compress([file]);
+        compress(file);
       },
       child: Container(
         width: 75,
@@ -212,18 +207,19 @@ class CameraAppState extends State<CameraApp> {
     });
   }
 
-  void compress(List<File> files) async {
-    List<File> files2 = [];
-    for (File file in files) {
-      Uint8List? blobBytes = await compressFile(file);
-      var dir = await getTemporaryDirectory();
-      String trimmed = dir.absolute.path;
-      String dateTimeString = DateTime.now().millisecondsSinceEpoch.toString();
-      String pathString = "$trimmed/$dateTimeString.jpg";
-      File fileNew = File(pathString);
-      fileNew.writeAsBytesSync(List.from(blobBytes!));
-      files2.add(fileNew);
+  void compress(File? file) async {
+    if (file == null) {
+      Navigator.of(context).pop(null);
     }
+    File? files2;
+    Uint8List? blobBytes = await compressFile(file!);
+    var dir = await getTemporaryDirectory();
+    String trimmed = dir.absolute.path;
+    String dateTimeString = DateTime.now().millisecondsSinceEpoch.toString();
+    String pathString = "$trimmed/$dateTimeString.jpg";
+    File fileNew = File(pathString);
+    fileNew.writeAsBytesSync(List.from(blobBytes!));
+    files2 = fileNew;
 
     if (context.mounted) {
       Navigator.of(context).pop(files2);

@@ -17,6 +17,6 @@ class SplashViewModel extends BaseViewModel {
 
   Future<void> _startSplash() async {
     await Future.delayed(const Duration(seconds: 2));
-    Get.offNamed(MainRoute.detection);
+    Get.offNamed(MainRoute.home);
   }
 }

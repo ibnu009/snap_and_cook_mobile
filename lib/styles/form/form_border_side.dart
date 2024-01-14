@@ -5,6 +5,9 @@ import '../colors.dart';
 class FormBorderSide {
 
   // Border Side
+  static BorderSide get none =>
+      const BorderSide(width: 0, color: AppColors.transparent);
+
   static BorderSide get sideNormal =>
       const BorderSide(width: 1, color: AppColors.primaryGrey300);
   static BorderSide get sideInactive =>
@@ -17,5 +20,6 @@ class FormBorderSide {
       const BorderSide(width: 1, color: AppColors.semanticOrange500);
   static BorderSide get sideSuccess =>
       const BorderSide(width: 1, color: AppColors.semanticGreen500);
+
 
 }

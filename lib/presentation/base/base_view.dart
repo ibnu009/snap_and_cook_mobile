@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../components/dismissable_keyboard.dart';
-import '../../components/progress_container.dart';
 import '../../styles/colors.dart';
 import 'base_view_model.dart';
 
@@ -39,11 +38,14 @@ abstract class BaseView<T extends BaseViewModel> extends GetView<T>{
         floatingActionButton: floatingActionButton(),
         body: pageContent(context),
         bottomNavigationBar: bottomNavigationBar(),
-        floatingActionButtonLocation:
-        FloatingActionButtonLocation.centerFloat,
+        bottomSheet: bottomSheet(),
         drawer: drawer(),
       ),
     );
+  }
+
+  Widget? bottomSheet() {
+    return null;
   }
 
   Color statusBarColor() {

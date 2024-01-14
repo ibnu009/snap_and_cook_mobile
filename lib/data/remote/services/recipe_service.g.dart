@@ -19,13 +19,13 @@ class _RecipeServices implements RecipeServices {
   String? baseUrl;
 
   @override
-  Future<BaseResponse<List<Recipe>>> getAllRecipes(cancelToken) async {
+  Future<BaseResponse<List<RecipeModel>>> getAllRecipes(cancelToken) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<BaseResponse<List<Recipe>>>(Options(
+        _setStreamType<BaseResponse<List<RecipeModel>>>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
@@ -38,17 +38,18 @@ class _RecipeServices implements RecipeServices {
               cancelToken: cancelToken,
             )
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    final value = BaseResponse<List<Recipe>>.fromJson(
+    final value = BaseResponse<List<RecipeModel>>.fromJson(
       _result.data!,
       (json) => (json as List<dynamic>)
-          .map<Recipe>((i) => Recipe.fromJson(i as Map<String, dynamic>))
+          .map<RecipeModel>(
+              (i) => RecipeModel.fromJson(i as Map<String, dynamic>))
           .toList(),
     );
     return value;
   }
 
   @override
-  Future<BaseResponse<Recipe>> getDetailRecipe(
+  Future<BaseResponse<RecipeModel>> getDetailRecipe(
     cancelToken,
     uuid,
   ) async {
@@ -57,7 +58,7 @@ class _RecipeServices implements RecipeServices {
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<BaseResponse<Recipe>>(Options(
+        _setStreamType<BaseResponse<RecipeModel>>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
@@ -70,9 +71,9 @@ class _RecipeServices implements RecipeServices {
               cancelToken: cancelToken,
             )
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    final value = BaseResponse<Recipe>.fromJson(
+    final value = BaseResponse<RecipeModel>.fromJson(
       _result.data!,
-      (json) => Recipe.fromJson(json as Map<String, dynamic>),
+      (json) => RecipeModel.fromJson(json as Map<String, dynamic>),
     );
     return value;
   }

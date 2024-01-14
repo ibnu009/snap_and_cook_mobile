@@ -12,7 +12,7 @@ import 'utils/session/session.dart';
 Future<void> init() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Get.putAsync<Dio>(
-    () async => Dio().baseUrl(AppEnvironment.baseUrl).addInterceptor(
+    () async => Dio().baseUrl(AppEnvironment.apiUrl).addInterceptor(
         AuthorizationHeaderInterceptor(
             onToken: () async =>
                 await Session.get(SessionConstants.token) ?? "")),

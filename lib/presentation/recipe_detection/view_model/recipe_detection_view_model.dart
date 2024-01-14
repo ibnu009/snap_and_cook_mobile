@@ -1,13 +1,17 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
 import 'package:flutter_vision/flutter_vision.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:snap_and_cook_mobile/data/remote/models/ingredient_model.dart';
+import 'package:snap_and_cook_mobile/resources/arguments/argument_constants.dart';
+import 'package:snap_and_cook_mobile/routes/routes/main_route.dart';
 
+import '../../../components/camera/custom_camera.dart';
+import '../../../utils/helper/detection_helper.dart';
 import '../../base/base_view_model.dart';
 
 class RecipeDetectionViewModel extends BaseViewModel {
@@ -18,7 +22,14 @@ class RecipeDetectionViewModel extends BaseViewModel {
   RxInt imageWidth = RxInt(1);
   RxBool isLoadingModel = RxBool(false);
   RxBool isProcessingModel = RxBool(false);
+  RxBool isShowDetectionResult = RxBool(false);
+  RxList<Ingredient> detectedIngredients = RxList();
+  final Stopwatch _stopwatch = Stopwatch();
+  Timer? _timer;
+
   Rxn<Uint8List> imageBytes = Rxn<Uint8List>();
+  DraggableScrollableController draggableScrollableController =
+      DraggableScrollableController();
 
   @override
   void onInit() {
@@ -27,29 +38,45 @@ class RecipeDetectionViewModel extends BaseViewModel {
   }
 
   Future<void> _loadMachineLearningModel() async {
-    isLoadingModel.value = true;
+    showLoadingContainer();
     await _vision.loadYoloModel(
       labels: 'assets/labels.txt',
       modelPath: 'assets/yolov8m_float16.tflite',
+      // labels: 'assets/labels_alpha.txt',
+      // modelPath: 'assets/wicaratanganV2.tflite',
       modelVersion: "yolov8",
       quantization: false,
       numThreads: 2,
       useGpu: true,
     );
-    isLoadingModel.value = false;
+    hideLoadingContainer();
   }
 
   Future<void> pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? photo = await picker.pickImage(source: ImageSource.gallery);
-    if (photo != null) {
-      imageFile.value = File(photo.path);
+    File? data = await Navigator.of(Get.context!).push(
+      MaterialPageRoute<File>(
+        builder: (BuildContext context) =>
+            const CustomCameraWidget(compressionQuality: 80),
+      ),
+    );
+
+    if (data != null) {
+      imageFile.value = data;
+      _startTimer();
       _detectIngredients();
     }
   }
 
+  void _startTimer() {
+    _stopwatch.start();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      print("${_stopwatch.elapsed.inSeconds} seconds");
+    });
+  }
+
   void _detectIngredients() async {
     modelResults.clear();
+
     Uint8List byte = await imageFile.value!.readAsBytes();
     final image = await decodeImageFromList(byte);
     imageHeight.value = image.height;
@@ -64,11 +91,49 @@ class RecipeDetectionViewModel extends BaseViewModel {
       confThreshold: 0.2,
       classThreshold: 0.3,
     );
-    closeLoadingDialog();
     if (result.isNotEmpty) {
       modelResults.value = result;
-      imageBytes.value = await drawOnImage( modelResults);
+      imageBytes.value = await drawOnImage(modelResults);
+      closeLoadingDialog();
+      _showDraggableBottomSheet();
+      _timer?.cancel();
+      _stopwatch.stop();
+      _stopwatch.reset();
+    } else {
+      _timer?.cancel();
+      _stopwatch.stop();
+      _stopwatch.reset();
+      closeLoadingDialog();
+      showGeneralDialog(context: Get.context!, pageBuilder: (context, anim1, anim2) {
+        return AlertDialog(
+          title: const Text("Tidak ada bahan yang terdeteksi"),
+          content: const Text("Silahkan coba lagi"),
+          actions: [
+            TextButton(onPressed: () {
+              Get.back();
+            }, child: const Text("OK"))
+          ],
+        );
+      });
     }
+  }
+
+  void incrementIngredientQuantity(int index) {
+    detectedIngredients[index].quantity =
+        (detectedIngredients[index].quantity ?? 0) + 1;
+    detectedIngredients.refresh();
+  }
+
+  void decrementIngredientQuantity(int index) {
+    if (detectedIngredients[index].quantity == 1) return;
+    detectedIngredients[index].quantity =
+        (detectedIngredients[index].quantity ?? 0) - 1;
+    detectedIngredients.refresh();
+  }
+
+  void removeIngredient(int index) {
+    detectedIngredients.removeAt(index);
+    detectedIngredients.refresh();
   }
 
   Future<Uint8List> drawOnImage(List<Map<String, dynamic>> modelResults) async {
@@ -83,70 +148,39 @@ class RecipeDetectionViewModel extends BaseViewModel {
     final recorder = PictureRecorder();
     final canvas = Canvas(recorder);
     canvas.drawImage(img, Offset.zero, Paint());
-    drawBoxesOnCanvas(canvas, Size(img.width.toDouble(), img.height.toDouble()), modelResults);
+    List<Ingredient> detectedObject =
+        drawBoxesOnCanvasAndReturnDetectedIngredient(
+      canvas: canvas,
+      screen: Size(img.width.toDouble(), img.height.toDouble()),
+      modelResults: modelResults,
+      imageHeight: imageHeight.value,
+      imageWidth: imageWidth.value,
+    );
+
+    detectedIngredients.value = detectedObject;
 
     final picture = recorder.endRecording();
     final imgWithBoxes = await picture.toImage(img.width, img.height);
-    final ByteData? byteData = await imgWithBoxes.toByteData(format: ImageByteFormat.png);
+    final ByteData? byteData =
+        await imgWithBoxes.toByteData(format: ImageByteFormat.png);
 
     return byteData!.buffer.asUint8List();
   }
 
-  void drawBoxesOnCanvas(Canvas canvas, Size screen, List<Map<String, dynamic>> modelResults) {
-    if (modelResults.isEmpty) return;
-
-    double factorX = screen.width / imageWidth.value;
-    double imgRatio = imageWidth.value / imageHeight.value;
-    double newWidth = imageWidth.value * factorX;
-    double newHeight = newWidth / imgRatio;
-    double factorY = newHeight / imageHeight.value;
-
-    double pady = (screen.height - newHeight) / 2;
-
-    Color colorPick = const Color.fromARGB(255, 50, 233, 30);
-
-    final Paint boxPaint = Paint()
-      ..color = Colors.pink
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4.0;
-
-    final Paint textBackgroundPaint = Paint()
-      ..color = colorPick;
-
-    const TextStyle textStyle = TextStyle(
-      color: Colors.white,
-      fontSize: 28.0,
+  void _showDraggableBottomSheet() {
+    isShowDetectionResult.value = true;
+    if (!draggableScrollableController.isAttached) return;
+    draggableScrollableController.animateTo(
+      0.5,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
     );
+  }
 
-    for (Map<String, dynamic> result in modelResults) {
-      double left = result["box"][0] * factorX;
-      double top = result["box"][1] * factorY + pady;
-      double width = (result["box"][2] - result["box"][0]) * factorX;
-      double height = (result["box"][3] - result["box"][1]) * factorY;
-
-      Rect rect = Rect.fromLTWH(left, top, width, height);
-      canvas.drawRect(rect, boxPaint);
-
-      TextSpan textSpan = TextSpan(
-        text: "${result['tag']} ${(result['box'][4] * 100).toStringAsFixed(0)}%",
-        style: textStyle,
-      );
-      TextPainter textPainter = TextPainter(
-        text: textSpan,
-        textAlign: TextAlign.center,
-        textDirection: TextDirection.ltr,
-      );
-
-      textPainter.layout();
-      Offset textOffset = Offset(left, top - textPainter.height - 2.0);
-
-      Rect textBackgroundRect = Rect.fromPoints(
-        Offset(textOffset.dx, textOffset.dy),
-        Offset(textOffset.dx + textPainter.width, textOffset.dy + textPainter.height),
-      );
-      canvas.drawRect(textBackgroundRect, textBackgroundPaint);
-      textPainter.paint(canvas, textOffset);
-    }
+  void navigateToRecipeDetectionResult() {
+    Get.toNamed(MainRoute.detectionResult, arguments: {
+      ArgumentConstants.ingredients: detectedIngredients.value,
+    });
   }
 
   @override

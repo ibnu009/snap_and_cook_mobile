@@ -35,14 +35,14 @@ class BasicButton extends StatelessWidget {
     this.isTransparent = false,
     this.isBorder = false,
     this.isLeading = false,
-    this.borderRadius = 0,
-    this.bgColor = AppColors.heroBlack,
+    this.borderRadius = 14,
+    this.bgColor = AppColors.primary,
     this.textColor = AppColors.heroWhite,
-    this.borderColor = AppColors.heroBlack,
-    this.height = 60,
-    this.sizeText = 18,
+    this.borderColor = AppColors.primary,
+    this.height = 42,
+    this.sizeText = 16,
     this.leadingIcon,
-    this.fontWeight = FontWeight.w600,
+    this.fontWeight = FontWeight.w500,
     this.disableColor = AppColors.primaryGrey100,
     this.loadingColor = AppColors.heroWhite, this.viewKey,
   }) : super(key: key);
@@ -61,15 +61,12 @@ class BasicButton extends StatelessWidget {
           style: buttonStyle(),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: IntrinsicHeight(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  basicButtonLeading(),
-                  basicButtonOnProgress(),
-                  basicButtonText(),
-                ],
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                basicButtonLeading(),
+                Expanded(child: basicButtonText()),
+              ],
             ),
           ),
         ),
@@ -83,30 +80,6 @@ class BasicButton extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           leadingIcon ?? const SizedBox(),
-          SizedBox(
-            width: 24.w,
-          ),
-        ],
-      );
-    }
-    return const SizedBox();
-  }
-
-  Widget basicButtonOnProgress() {
-    if (isLoading) {
-      return Row(
-        children: [
-          SizedBox(
-            width: 18.w,
-            height: 18.h,
-            child: CircularProgressIndicator(
-              color: loadingColor,
-              strokeWidth: 3.r,
-            ),
-          ),
-          SizedBox(
-            width: 12.w,
-          ),
         ],
       );
     }

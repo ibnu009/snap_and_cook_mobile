@@ -1,11 +1,13 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../../configuration/app_environtment.dart';
+import '../../../domain/entities/recipe.dart';
 import 'ingredient_model.dart';
 
 part 'recipe_model.g.dart';
 
 @JsonSerializable()
-class Recipe {
+class RecipeModel {
   String? uuid;
   String? title;
   String? description;
@@ -17,7 +19,7 @@ class Recipe {
   int? servings;
   List<String>? utensils;
 
-  Recipe({
+  RecipeModel({
     this.uuid,
     this.title,
     this.description,
@@ -30,8 +32,23 @@ class Recipe {
     this.utensils,
   });
 
-  Map<String, dynamic> toJson() => _$RecipeToJson(this);
+  Map<String, dynamic> toJson() => _$RecipeModelToJson(this);
 
-  factory Recipe.fromJson(Map<String, dynamic> json) =>
-      _$RecipeFromJson(json);
+  factory RecipeModel.fromJson(Map<String, dynamic> json) =>
+      _$RecipeModelFromJson(json);
+
+  Recipe toEntity() {
+    return Recipe(
+      uuid: uuid,
+      title: title,
+      description: description,
+      image: AppEnvironment.apiUrl + (image ?? ''),
+      ingredients: ingredients,
+      instructions: instructions,
+      prepTime: prepTime,
+      cookTime: cookTime,
+      servings: servings,
+      utensils: utensils,
+    );
+  }
 }
