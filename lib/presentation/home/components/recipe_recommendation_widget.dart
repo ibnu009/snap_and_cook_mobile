@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:snap_and_cook_mobile/components/recipe/recipe_item.dart';
-import 'package:snap_and_cook_mobile/data/remote/models/recipe_model.dart';
 
 import '../../../domain/entities/recipe.dart';
 import '../view_model/home_view_model.dart';

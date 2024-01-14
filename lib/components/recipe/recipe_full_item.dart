@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:snap_and_cook_mobile/components/image/basic_network_image.dart';
-import 'package:snap_and_cook_mobile/data/remote/models/recipe_model.dart';
 import 'package:snap_and_cook_mobile/styles/text_styles/tt_commons_text_styles.dart';
 
 import '../../domain/entities/recipe.dart';

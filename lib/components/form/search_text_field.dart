@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../styles/form/form_border_side.dart';
-import '../../styles/form/form_input_borders.dart';
 import '../../styles/radiuses.dart';
 
 class SearchTextField extends StatelessWidget {

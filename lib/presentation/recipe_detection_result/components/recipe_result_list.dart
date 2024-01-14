@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../components/recipe/recipe_full_item.dart';
-import '../../../data/remote/models/recipe_model.dart';
 import '../../../domain/entities/recipe.dart';
 import '../view_model/recipe_detection_result_view_model.dart';
 

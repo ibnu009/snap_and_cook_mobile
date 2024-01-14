@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:snap_and_cook_mobile/data/remote/models/ingredient_model.dart';
-import 'package:snap_and_cook_mobile/presentation/recipe_detail/components/ingredients_item.dart';
 import 'package:snap_and_cook_mobile/presentation/recipe_detail/components/step_item.dart';
 
 class StepListWidget extends StatelessWidget {
