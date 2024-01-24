@@ -42,7 +42,7 @@ class RecipeModel {
       uuid: uuid,
       title: title,
       description: description,
-      image: AppEnvironment.apiUrl + (image ?? ''),
+      image: AppEnvironment.imageUrl + (image ?? ''),
       ingredients: ingredients,
       instructions: instructions,
       prepTime: prepTime,

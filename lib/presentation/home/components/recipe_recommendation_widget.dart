@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:snap_and_cook_mobile/components/recipe/recipe_item.dart';
 
-import '../../../domain/entities/recipe.dart';
 import '../view_model/home_view_model.dart';
 
 class RecipeRecommendationWidget extends GetView<HomeViewModel> {
@@ -12,26 +11,22 @@ class RecipeRecommendationWidget extends GetView<HomeViewModel> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: GridView.builder(
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: 8,
-        primary: false,
-        shrinkWrap: true,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisSpacing: 8,
-          crossAxisCount: 2,
-          mainAxisSpacing: 0,
-          childAspectRatio: 0.75,
-        ),
-        itemBuilder: (ctx, index) => GestureDetector(
-          onTap: () {
-            controller.navigateToRecipeDetail();
-          },
-          child: RecipeItem(
-            recipe: Recipe(),
-          ),
-        ),
-      ),
+      child: Obx(() => GridView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: controller.recipes.length,
+            primary: false,
+            shrinkWrap: true,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisSpacing: 8,
+              crossAxisCount: 2,
+              mainAxisSpacing: 16,
+              childAspectRatio: 0.675,
+            ),
+            itemBuilder: (ctx, index) => RecipeItem(
+              recipe: controller.recipes[index],
+              onTap: controller.navigateToRecipeDetail,
+            ),
+          )),
     );
   }
 

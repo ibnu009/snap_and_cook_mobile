@@ -97,7 +97,8 @@ class HomeView extends BaseView<HomeViewModel> {
               ],
             ),
           ),
-          RecipeRecommendationWidget()
+          RecipeRecommendationWidget(),
+          SizedBox(height: 64,)
         ],
       ),
     );

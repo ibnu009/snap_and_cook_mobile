@@ -14,14 +14,17 @@ class StepItem extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _stepContainer(),
           const SizedBox(
             width: 12,
           ),
-          Text(
-            step,
-            style: TTCommonsTextStyles.textMd.textMedium(),
+          Expanded(
+            child: Text(
+              step,
+              style: TTCommonsTextStyles.textMd.textMedium(),
+            ),
           ),
         ],
       ),

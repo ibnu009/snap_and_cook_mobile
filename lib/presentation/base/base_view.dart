@@ -3,10 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../components/dismissable_keyboard.dart';
+import '../../components/progress_container.dart';
 import '../../styles/colors.dart';
 import 'base_view_model.dart';
 
-abstract class BaseView<T extends BaseViewModel> extends GetView<T>{
+abstract class BaseView<T extends BaseViewModel> extends GetView<T> {
   const BaseView({super.key});
 
   Widget body(BuildContext context);
@@ -62,9 +63,24 @@ abstract class BaseView<T extends BaseViewModel> extends GetView<T>{
 
   Widget pageContent(BuildContext context) {
     return SafeArea(
-      child: body(context),
+      child: Stack(
+        children: [
+          Obx(
+            () => AnimatedOpacity(
+              opacity: controller.isLoadingContainer ? 0 : 1,
+              duration: const Duration(milliseconds: 750),
+              child: body(context),
+            ),
+          ),
+          Obx(
+            () => ProgressContainer(
+                isShow: controller.isLoadingContainer, onDismiss: null),
+          )
+        ],
+      ),
     );
   }
+
   Widget? drawer() {
     return null;
   }

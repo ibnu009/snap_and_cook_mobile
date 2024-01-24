@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_state_manager/get_state_manager.dart';
 import 'package:snap_and_cook_mobile/components/basic_button.dart';
 import 'package:snap_and_cook_mobile/components/image/basic_network_image.dart';
 import 'package:snap_and_cook_mobile/presentation/recipe_detail/components/ingredient_list_widget.dart';
@@ -17,13 +18,19 @@ class RecipeDetailView extends BaseView<RecipeDetailViewModel> {
 
   @override
   PreferredSizeWidget? appBar(BuildContext context) {
-    return BasicAppBar(appBarTitleText: "", centerTitle: false, leadingIconData: Icons.arrow_back,);
+    return BasicAppBar(
+      appBarTitleText: "",
+      centerTitle: false,
+      leadingIconData: Icons.arrow_back,
+    );
   }
 
   @override
   Widget body(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24,),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 24,
+      ),
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Column(
@@ -31,33 +38,62 @@ class RecipeDetailView extends BaseView<RecipeDetailViewModel> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 24.0),
-              child: Text('Nasi Goreng Dadakan', style: TTCommonsTextStyles.textXl.textMedium()),
+              child: Obx(() => Text(controller.recipe.value?.title ?? '',
+                  style: TTCommonsTextStyles.textXl.textMedium())),
             ),
             SizedBox(
               height: 200,
               width: double.infinity,
               child: ClipRRect(
-                  borderRadius: BorderRadius.all(Radius.circular(16)),
-                  child: BasicNetworkImage(imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT80b6egSM9UngjcWwCu92vjmfRQux7WcZCMQ&usqp=CAU')),
+                borderRadius: const BorderRadius.all(Radius.circular(16)),
+                child: Obx(
+                  () => BasicNetworkImage(
+                      imageUrl: controller.recipe.value?.image ?? ''),
+                ),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 24.0),
-              child: Text('Orak arik telur buncis adalah hidangan lezat yang cocok sebagai lauk makan siang atau makan malam.', style: TTCommonsTextStyles.textMd.textRegular()),
+              child: Obx(
+                () => Text(controller.recipe.value?.description ?? '',
+                    style: TTCommonsTextStyles.textMd.textRegular()),
+              ),
             ),
-            Divider(
+            const Divider(
               color: Colors.grey,
             ),
-            FoodPrepWidget(),
-            RecipeDetailDividerWidget(title: 'Bahan',),
-            IngredientListWidget(),
-            RecipeDetailDividerWidget(title: 'Alat Memasak',),
-            RecipeDetailDividerWidget(title: 'Langkah-langkah',),
-            StepListWidget(),
-            SizedBox(height: 24,),
-            BasicButton(onPress: (){},
+            Obx(
+              () => FoodPrepWidget(
+                cookTime: controller.recipe.value?.cookTime,
+                prepTime: controller.recipe.value?.prepTime,
+                serving: controller.recipe.value?.servings,
+              ),
+            ),
+            const RecipeDetailDividerWidget(
+              title: 'Bahan',
+            ),
+            Obx(
+              () => IngredientListWidget(
+                ingredients: controller.recipe.value?.ingredients ?? [],
+              ),
+            ),
+            const RecipeDetailDividerWidget(
+              title: 'Alat Memasak',
+            ),
+            const RecipeDetailDividerWidget(
+              title: 'Langkah-langkah',
+            ),
+            StepListWidget(steps:controller.recipe.value?.instructions ?? [],),
+            const SizedBox(
+              height: 24,
+            ),
+            BasicButton(
+                onPress: () {},
                 bgColor: AppColors.copper,
                 text: 'Mulai Memasak'),
-            SizedBox(height: 24,),
+            const SizedBox(
+              height: 24,
+            ),
           ],
         ),
       ),

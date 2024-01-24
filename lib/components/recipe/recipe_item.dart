@@ -6,43 +6,58 @@ import '../../domain/entities/recipe.dart';
 
 class RecipeItem extends StatelessWidget {
   final Recipe recipe;
-
-  const RecipeItem({super.key, required this.recipe});
+  final Function(String) onTap;
+  const RecipeItem({super.key, required this.recipe, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        BasicNetworkImage(
-          imageUrl: recipe.image ?? 'https://img.freepik.com/free-photo/tasty-burger-isolated-white-background-fresh-hamburger-fastfood-with-beef-cheese_90220-1063.jpg',
-          height: 160,
-          width: double.infinity,
-        ),
-        const SizedBox(
-          height: 8,
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Text(
-            recipe.title ?? 'Masakan',
-            style: TTCommonsTextStyles.textMd.textMedium(),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Text(
-            '${recipe.cookTime ?? 0} menit',
-            style: TTCommonsTextStyles.textSm.textRegular(),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
+    print("IMAGE IS ${recipe.image}");
+    return GestureDetector(
+      onTap: () {
+        onTap(recipe.uuid ?? '');
+      },
+      child: Card(
+        elevation: 2,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(4),
+                topRight: Radius.circular(4),
+              ),
+              child: BasicNetworkImage(
+                imageUrl: recipe.image ?? '',
+                height: 160,
+                width: double.infinity,
+              ),
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                recipe.title ?? 'Masakan',
+                style: TTCommonsTextStyles.textMd.textMedium(),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                '${recipe.cookTime ?? 0} menit',
+                style: TTCommonsTextStyles.textSm.textRegular(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
 
 
-      ],
+          ],
+        ),
+      ),
     );
   }
 }

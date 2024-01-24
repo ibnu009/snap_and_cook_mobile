@@ -8,7 +8,7 @@ part of 'ingredient_model.dart';
 
 Ingredient _$IngredientFromJson(Map<String, dynamic> json) => Ingredient(
       name: json['name'] as String?,
-      quantity: json['quantity'] as int?,
+      quantity: (json['quantity'] as num?)?.toDouble(),
       unit: json['unit'] as String?,
     );
 

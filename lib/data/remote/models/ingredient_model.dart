@@ -5,7 +5,7 @@ part 'ingredient_model.g.dart';
 @JsonSerializable()
 class Ingredient {
   String? name;
-  int? quantity;
+  double? quantity;
   String? unit;
 
   Ingredient({

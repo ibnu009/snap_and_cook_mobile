@@ -21,8 +21,6 @@ class RecipeUseCase implements RecipeInterface {
       return Right(recipes);
     } on DioError catch (e) {
       return Left(e);
-    } catch (e) {
-      return Left(DioError(requestOptions: RequestOptions(path: "")));
     }
   }
 

@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:snap_and_cook_mobile/presentation/recipe_detail/components/step_item.dart';
 
 class StepListWidget extends StatelessWidget {
-  const StepListWidget({super.key});
+  final List<String> steps;
+  const StepListWidget({super.key, required this.steps});
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       itemBuilder: (context, index) {
-        return StepItem(step: "Panaskan minyak goreng", index: index);
+        return StepItem(step: steps[index], index: index);
       },
-      itemCount: 5,
+      itemCount: steps.length,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
     );

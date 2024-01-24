@@ -6,6 +6,7 @@ import 'app_build_config.dart';
 
 class AppEnvironment {
   static load() async {
+
     if (AppBuildConfig.instance.config == BuildConfigEnum.production) {
       await dotenv.load(fileName: "production/.env");
     } else {
