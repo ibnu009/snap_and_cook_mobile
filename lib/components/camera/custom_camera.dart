@@ -165,7 +165,9 @@ class CustomCameraWidgetState extends State<CustomCameraWidget> {
         ImagePicker();
         final XFile? image =
         await picker0.pickImage(
-            source: ImageSource.gallery);
+            source: ImageSource.gallery,
+
+        );
         if (image == null) {
           return;
         }

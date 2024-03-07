@@ -8,15 +8,17 @@ import '../../../routes/routes/main_route.dart';
 import '../../base/base_view_model.dart';
 
 class HomeViewModel extends BaseViewModel {
-  String version = "Version 0.0.1-dev";
-
   TextEditingController searchController = TextEditingController();
   final RecipeUseCase _recipeUseCase = RecipeUseCase();
 
-  final RxList<Recipe>  recipes = RxList<Recipe>();
+  final RxList<Recipe> recipes = RxList<Recipe>();
 
   void onSearchSubmitted(String value) {
-    print(value);
+    if (value.isEmpty) {
+      return;
+    }
+    Get.toNamed(MainRoute.searchResult,
+        arguments: {ArgumentConstants.search: value});
   }
 
   @override
@@ -27,9 +29,9 @@ class HomeViewModel extends BaseViewModel {
 
   Future<void> _fetchAllRecipes() async {
     showLoadingContainer();
-    var data = await _recipeUseCase.fetchRecipes(cancelToken);
-    data.fold((l){
-    }, (result){
+    var data = await _recipeUseCase.fetchRecipes(cancelToken,
+        size: 20, currentPage: 1);
+    data.fold((l) {}, (result) {
       hideLoadingContainer();
       recipes.clear();
       recipes.addAll(result);
@@ -44,6 +46,10 @@ class HomeViewModel extends BaseViewModel {
 
   void navigateToRecipeDetection() {
     Get.toNamed(MainRoute.detection);
+  }
+
+  void navigateToUtensilPage() {
+    Get.toNamed(MainRoute.utensil);
   }
 
   @override

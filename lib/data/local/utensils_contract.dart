@@ -35,4 +35,11 @@ class UtensilContract {
         await db.query(DatabaseConstant.utensilsTable);
     return results.map((res) => Utensil.fromJson(res)).toList();
   }
+
+  Future<List<String>> getSelectedUtensils() async {
+    final Database db = await _databaseHelper.database;
+    List<Map<String, dynamic>> results =
+    await db.query(DatabaseConstant.utensilsTable,where: 'isSelected = 1');
+    return results.map((res) => Utensil.fromJson(res).name ?? '').toList();
+  }
 }

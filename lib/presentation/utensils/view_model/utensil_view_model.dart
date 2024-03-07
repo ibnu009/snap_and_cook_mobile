@@ -1,22 +1,34 @@
 import 'package:get/get.dart';
+import 'package:snap_and_cook_mobile/domain/use_case/utensils/utensil_use_case.dart';
 
-import '../../../routes/routes/main_route.dart';
+import '../../../data/remote/models/utensil_model.dart';
 import '../../base/base_view_model.dart';
 
 class UtensilViewModel extends BaseViewModel {
-  String version = "Version 0.0.1-dev";
+  final _useCase = UtensilUseCase();
+
+  RxList<Utensil> utensils = RxList();
 
   @override
-  void onReady() {
-    super.onReady();
-    _startSplash();
+  void onInit() {
+    super.onInit();
+    _fetchUtensils();
   }
 
-  @override
-  void onClose() {}
-
-  Future<void> _startSplash() async {
-    await Future.delayed(const Duration(seconds: 2));
-    Get.offNamed(MainRoute.home);
+  Future<void> _fetchUtensils() async {
+    showLoadingContainer();
+    utensils.value = await _useCase.fetchUtensils();
+    hideLoadingContainer();
   }
+
+  void onSelectUtensil(Utensil utensil, int index){
+    if (utensil.isSelected == 0){
+      utensil.isSelected = 1;
+    } else{
+      utensil.isSelected = 0;
+    }
+    utensils[index] = utensil;
+    _useCase.updateUtensil(utensil);
+  }
+
 }

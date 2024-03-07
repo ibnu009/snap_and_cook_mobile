@@ -10,20 +10,19 @@ class RecipeResultList extends GetView<RecipeDetectionResultViewModel> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    return Obx(
+      () => ListView.builder(
         itemBuilder: (context, index) {
+          Recipe recipe = controller.recipes[index];
           return RecipeFullItem(
-            recipe: Recipe(
-              title: 'Masakan',
-              cookTime: 0,
-              image:
-                  'https://img.freepik.com/free-photo/tasty-burger-isolated-white-background-fresh-hamburger-fastfood-with-beef-cheese_90220-1063.jpg',
-            ),
+            recipe: recipe,
             onTap: controller.navigateToRecipeDetail,
           );
         },
-        itemCount: 4,
+        itemCount: controller.recipes.length,
         shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics());
+        physics: const NeverScrollableScrollPhysics(),
+      ),
+    );
   }
 }

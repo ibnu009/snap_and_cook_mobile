@@ -40,13 +40,12 @@ class RecipeDetectionViewModel extends BaseViewModel {
   Future<void> _loadMachineLearningModel() async {
     showLoadingContainer();
     await _vision.loadYoloModel(
-      labels: 'assets/labels.txt',
+      // labels: 'assets/labels.txt',
       modelPath: 'assets/yolov8m_float16.tflite',
-      // labels: 'assets/labels_alpha.txt',
-      // modelPath: 'assets/wicaratanganV2.tflite',
+      labels: 'assets/labels.txt',
       modelVersion: "yolov8",
       quantization: false,
-      numThreads: 2,
+      numThreads: 3,
       useGpu: true,
     );
     hideLoadingContainer();
@@ -87,10 +86,12 @@ class RecipeDetectionViewModel extends BaseViewModel {
       bytesList: byte,
       imageHeight: image.height,
       imageWidth: image.width,
-      iouThreshold: 0.8,
+      iouThreshold: 0.2,
       confThreshold: 0.2,
-      classThreshold: 0.3,
+      classThreshold: 0.2,
     );
+
+    print("DATA IS ${result.length}");
     if (result.isNotEmpty) {
       modelResults.value = result;
       imageBytes.value = await drawOnImage(modelResults);
@@ -117,6 +118,27 @@ class RecipeDetectionViewModel extends BaseViewModel {
       });
     }
   }
+
+  final translationDict = {
+    'carrot': 'Wortel',
+  };
+
+  Ingredient translateIngredient(Ingredient ingredient, Map<String, String> translationDict) {
+    final translatedName = translationDict[ingredient.name] ?? ingredient.name;
+    return Ingredient(
+      name: translatedName,
+      quantity: ingredient.quantity,
+      unit: ingredient.unit,
+    );
+  }
+
+  List<Ingredient> translateIngredients(List<Ingredient> ingredients, Map<String, String> translationDict) {
+    return ingredients.map((ingredient) => translateIngredient(ingredient, translationDict)).toList();
+  }
+
+  // List<String> translateIngredients(List<Ingredient> originalList) {
+  //   return originalList.map((Ingredient item) => item.name?.replaceAll('carrot', 'wortel')).toList();
+  // }
 
   void incrementIngredientQuantity(int index) {
     detectedIngredients[index].quantity =
@@ -157,7 +179,9 @@ class RecipeDetectionViewModel extends BaseViewModel {
       imageWidth: imageWidth.value,
     );
 
-    detectedIngredients.value = detectedObject;
+    detectedIngredients.value = translateIngredients(detectedObject, translationDict);
+
+    // detectedIngredients.value = detectedObject;
 
     final picture = recorder.endRecording();
     final imgWithBoxes = await picture.toImage(img.width, img.height);

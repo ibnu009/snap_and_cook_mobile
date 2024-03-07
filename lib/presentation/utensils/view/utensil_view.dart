@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:snap_and_cook_mobile/styles/text_styles/tt_commons_text_styles.dart';
-import '../../../components/asset_image_view.dart';
-import '../../../styles/values.dart';
-import '../../base/base_view.dart';
+import 'package:get/get.dart';
+import 'package:get/get_state_manager/get_state_manager.dart';
+import 'package:snap_and_cook_mobile/components/recipe/utensils.dart';
+
 import '../../../components/appbar/basic_appbar.dart';
-import '../../../styles/images.dart';
+import '../../base/base_view.dart';
 import '../view_model/utensil_view_model.dart';
 
 class UtensilView extends BaseView<UtensilViewModel> {
@@ -12,26 +12,39 @@ class UtensilView extends BaseView<UtensilViewModel> {
 
   @override
   PreferredSizeWidget? appBar(BuildContext context) {
-    return BasicAppBar(appBarTitleText: "", centerTitle: false);
+    return BasicAppBar(
+        appBarTitleText: "Alat-Alat Memasak",
+        onTapBack: () => Get.back(),
+        leadingIconData: Icons.arrow_back,
+        centerTitle: false);
   }
 
   @override
   Widget body(BuildContext context) {
-    return Column(
+    return Obx(
+      () => Wrap(
+        children: [
+          for (int i = 0; i < controller.utensils.length; i++)
+            GestureDetector(
+              onTap: () {
+                controller.onSelectUtensil(controller.utensils[i], i);
+              },
+              child: UtensilItem(
+                  name: controller.utensils[i].name ?? '',
+                  isSelected: controller.utensils[i].isSelected == 1),
+            )
+        ],
+      ),
+    );
+  }
+
+  Widget _utensilsWidget() {
+    return Wrap(
       children: [
-        const SizedBox(
-          width: double.infinity,
-        ),
-        const Expanded(
-            child: AssetImageView(
-          fileName: AppImages.logoFull,
-          width: AppValues.logoWidth,
-          height: AppValues.logoHeight,
-        )),
-        Text(controller.version, style: TTCommonsTextStyles.textLg.textMedium()),
-        const SizedBox(
-          height: 32,
-        ),
+        for (int i = 0; i < controller.utensils.length; i++)
+          UtensilItem(
+              name: controller.utensils[i].name ?? '',
+              isSelected: controller.utensils[i].isSelected == 1)
       ],
     );
   }

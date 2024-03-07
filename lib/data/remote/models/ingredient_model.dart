@@ -6,6 +6,7 @@ part 'ingredient_model.g.dart';
 class Ingredient {
   String? name;
   double? quantity;
+  @JsonKey(name: 'unit', includeIfNull: false)
   String? unit;
 
   Ingredient({

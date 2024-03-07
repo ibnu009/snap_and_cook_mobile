@@ -56,7 +56,7 @@ class HomeView extends BaseView<HomeViewModel> {
                     ),
                     const Spacer(),
                     IconButton(
-                        onPressed: () {},
+                        onPressed: controller.navigateToUtensilPage,
                         icon: const Icon(
                           Icons.settings,
                           color: Colors.white,
@@ -76,12 +76,6 @@ class HomeView extends BaseView<HomeViewModel> {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
-            child: Text("Cari berdasarkan 1 bahan",
-                style: TTCommonsTextStyles.textLg.textMedium()),
-          ),
-          _ingredientsWidget(),
           const SizedBox(
             height: 16,
           ),
@@ -89,11 +83,9 @@ class HomeView extends BaseView<HomeViewModel> {
             padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
             child: Row(
               children: [
-                Text("Rekomendasi",
+                Text("Rekomendasi Resep :",
                     style: TTCommonsTextStyles.textLg.textMedium()),
                 const Spacer(),
-                Text("Lihat Semua",
-                    style: TTCommonsTextStyles.textSm.textRegular()),
               ],
             ),
           ),

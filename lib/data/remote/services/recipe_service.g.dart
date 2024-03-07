@@ -19,9 +19,19 @@ class _RecipeServices implements RecipeServices {
   String? baseUrl;
 
   @override
-  Future<BaseResponse<List<RecipeModel>>> getAllRecipes(cancelToken) async {
+  Future<BaseResponse<List<RecipeModel>>> getAllRecipes(
+    cancelToken,
+    size,
+    currentPage,
+    search,
+  ) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'page[size]': size,
+      r'page[current]': currentPage,
+      r'filter[search]': search,
+    };
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio.fetch<Map<String, dynamic>>(
@@ -74,6 +84,40 @@ class _RecipeServices implements RecipeServices {
     final value = BaseResponse<RecipeModel>.fromJson(
       _result.data!,
       (json) => RecipeModel.fromJson(json as Map<String, dynamic>),
+    );
+    return value;
+  }
+
+  @override
+  Future<BaseResponse<List<RecipeModel>>> getRecipeRecommendation(
+    cancelToken,
+    request,
+  ) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(request.toJson());
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<BaseResponse<List<RecipeModel>>>(Options(
+      method: 'POST',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              'recipe/recommendation',
+              queryParameters: queryParameters,
+              data: _data,
+              cancelToken: cancelToken,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = BaseResponse<List<RecipeModel>>.fromJson(
+      _result.data!,
+      (json) => (json as List<dynamic>)
+          .map<RecipeModel>(
+              (i) => RecipeModel.fromJson(i as Map<String, dynamic>))
+          .toList(),
     );
     return value;
   }

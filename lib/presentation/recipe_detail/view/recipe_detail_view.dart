@@ -11,6 +11,7 @@ import '../../base/base_view.dart';
 import '../components/food_prep_widget.dart';
 import '../components/recipe_detail_divider_widget.dart';
 import '../components/step_list_widget.dart';
+import '../components/utensils_list_widget.dart';
 import '../view_model/recipe_detail_view_model.dart';
 
 class RecipeDetailView extends BaseView<RecipeDetailViewModel> {
@@ -80,6 +81,7 @@ class RecipeDetailView extends BaseView<RecipeDetailViewModel> {
             const RecipeDetailDividerWidget(
               title: 'Alat Memasak',
             ),
+            UtensilsListWidget(utensils: controller.recipe.value?.utensils ?? [],),
             const RecipeDetailDividerWidget(
               title: 'Langkah-langkah',
             ),

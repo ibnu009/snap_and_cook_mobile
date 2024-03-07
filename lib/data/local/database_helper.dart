@@ -26,7 +26,7 @@ class DatabaseHelper {
         await db.execute(
           '''CREATE TABLE ${DatabaseConstant.utensilsTable} (
                id INTEGER PRIMARY KEY,
-               name TEXT, is_selected INTEGER
+               name TEXT, isSelected INTEGER
              )''',
         );
       },

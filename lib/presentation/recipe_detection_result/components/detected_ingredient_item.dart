@@ -19,7 +19,7 @@ class DetectedIngredientItem extends StatelessWidget {
             color: AppColors.copper),
       ),
       child: Text(
-        '${ingredient.name} ${ingredient.quantity} ${ingredient.unit}',
+        '${ingredient.name} ${ingredient.quantity}',
         style: TTCommonsTextStyles.textMd.textMedium().copyWith(
           color: AppColors.copper,
         ),
