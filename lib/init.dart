@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:snap_and_cook_mobile/data/remote/services/recipe_service.dart';
+import 'package:snap_and_cook_mobile/data/remote/services/utensil_service.dart';
 import 'package:snap_and_cook_mobile/utils/extension/dio_extension.dart';
 import 'package:snap_and_cook_mobile/utils/interceptor/platform_header_interceptor.dart';
 
@@ -13,7 +14,7 @@ import 'utils/session/session.dart';
 
 Future<void> init() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await AppEnvironment.load();
+  AppEnvironment();
 
   await Get.putAsync<Dio>(
     () async => Dio()
@@ -29,5 +30,6 @@ Future<void> init() async {
 
   await Get.putAsync(() async => Session());
   await Get.putAsync(() async => RecipeServices(Get.find<Dio>()));
+  await Get.putAsync(() async => UtensilServices(Get.find<Dio>()));
   runApp(const RootRestorationScope(restorationId: 'root', child: App()));
 }

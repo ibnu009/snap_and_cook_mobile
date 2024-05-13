@@ -1,35 +1,57 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_vision/flutter_vision.dart';
 import 'package:get/get.dart';
+import 'package:image/image.dart' as img;
 import 'package:snap_and_cook_mobile/data/remote/models/ingredient_model.dart';
 import 'package:snap_and_cook_mobile/resources/arguments/argument_constants.dart';
 import 'package:snap_and_cook_mobile/routes/routes/main_route.dart';
+import 'package:snap_and_cook_mobile/utils/detection/labels.dart';
 
 import '../../../components/camera/custom_camera.dart';
-import '../../../utils/helper/detection_helper.dart';
+import '../../../utils/detection/yolo.dart';
 import '../../base/base_view_model.dart';
 
 class RecipeDetectionViewModel extends BaseViewModel {
-  final FlutterVision _vision = FlutterVision();
   RxList<Map<String, dynamic>> modelResults = RxList();
   Rxn<File> imageFile = Rxn<File>();
-  RxInt imageHeight = RxInt(1);
-  RxInt imageWidth = RxInt(1);
+  RxnInt imageHeight = RxnInt();
+  RxnInt imageWidth = RxnInt();
   RxBool isLoadingModel = RxBool(false);
   RxBool isProcessingModel = RxBool(false);
   RxBool isShowDetectionResult = RxBool(false);
   RxList<Ingredient> detectedIngredients = RxList();
   final Stopwatch _stopwatch = Stopwatch();
-  Timer? _timer;
+
+  static const inModelWidth = 640;
+  static const inModelHeight = 640;
+  static const numClasses = 6;
+
+  double maxImageWidgetHeight = 400;
+
+  double confidenceThreshold = 0.20;
+  double iouThreshold = 0.1;
+
+  RxList<List<double>> inferenceOutput = RxList();
+  RxList<int> classes = RxList();
+  RxList<List<double>> bboxes = RxList();
+  RxList<double> scores = RxList();
+
+  // int? imageWidth;
+  // int? imageHeight;
 
   Rxn<Uint8List> imageBytes = Rxn<Uint8List>();
   DraggableScrollableController draggableScrollableController =
       DraggableScrollableController();
+
+  final YoloModel model = YoloModel(
+    'assets/yolov8.tflite',
+    inModelWidth,
+    inModelHeight,
+    numClasses,
+  );
 
   @override
   void onInit() {
@@ -39,16 +61,68 @@ class RecipeDetectionViewModel extends BaseViewModel {
 
   Future<void> _loadMachineLearningModel() async {
     showLoadingContainer();
-    await _vision.loadYoloModel(
-      // labels: 'assets/labels.txt',
-      modelPath: 'assets/yolov8m_float16.tflite',
-      labels: 'assets/labels.txt',
-      modelVersion: "yolov8",
-      quantization: false,
-      numThreads: 3,
-      useGpu: true,
-    );
+    await model.init();
     hideLoadingContainer();
+  }
+
+  Future<void> updatePostProcess() async {
+    detectedIngredients.clear();
+    print("MASUK 1");
+    if (inferenceOutput.isEmpty) {
+      return;
+    }
+
+    List<int> newClasses = [];
+    List<List<double>> newBboxes = [];
+    List<double> newScores = [];
+
+    print("MASUK 2");
+
+    /// Wait this process with loading
+    (newClasses, newBboxes, newScores) = await model.postprocess(
+      inferenceOutput,
+      imageWidth.value ?? 0,
+      imageHeight.value ?? 0,
+      confidenceThreshold: confidenceThreshold,
+      iouThreshold: iouThreshold,
+    );
+    print("MASUK 3");
+
+    debugPrint('Detected ${newClasses} classes');
+    debugPrint('Detected ${newBboxes.length} boxed');
+    debugPrint('Detected ${newScores.length} scores');
+
+    classes.value = newClasses;
+    bboxes.value = newBboxes;
+    scores.value = newScores;
+    hideLoadingContainer();
+
+    for (var element in newClasses) {
+      if (detectedIngredients.isEmpty){
+        detectedIngredients.add(Ingredient(
+          name: labels[element],
+          quantity: 1,
+        ));
+      } else {
+        bool isExist = false;
+        for (int i = 0; i < detectedIngredients.length; i++) {
+          if (detectedIngredients[i].name == labels[element]) {
+            detectedIngredients[i].quantity = detectedIngredients[i].quantity! + 1;
+            isExist = true;
+            break;
+          }
+        }
+        if (!isExist) {
+          detectedIngredients.add(Ingredient(
+            name: labels[element],
+            quantity: 1,
+          ));
+        }
+      }
+    }
+
+    // closeLoadingDialog();
+    _showDraggableBottomSheet();
   }
 
   Future<void> pickImage() async {
@@ -58,66 +132,71 @@ class RecipeDetectionViewModel extends BaseViewModel {
             const CustomCameraWidget(compressionQuality: 80),
       ),
     );
+    print("MASUK 9");
+
 
     if (data != null) {
+      print("MASUK 10");
+
       imageFile.value = data;
-      _startTimer();
+      // _startTimer();
+      await Future.delayed(const Duration(milliseconds: 500));
+      print("MASUK 11");
+
       _detectIngredients();
     }
   }
 
   void _startTimer() {
     _stopwatch.start();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      print("${_stopwatch.elapsed.inSeconds} seconds");
-    });
   }
 
   void _detectIngredients() async {
-    modelResults.clear();
+    print("MASUK SINI 1");
 
-    Uint8List byte = await imageFile.value!.readAsBytes();
-    final image = await decodeImageFromList(byte);
+    // showLoadingDialog();
+
+    final image = img.decodeImage(await imageFile.value!.readAsBytes())!;
+    print("MASUK SINI 2");
+
     imageHeight.value = image.height;
     imageWidth.value = image.width;
+    inferenceOutput.value = model.infer(image);
 
-    showLoadingDialog();
-    final result = await _vision.yoloOnImage(
-      bytesList: byte,
-      imageHeight: image.height,
-      imageWidth: image.width,
-      iouThreshold: 0.2,
-      confThreshold: 0.2,
-      classThreshold: 0.2,
-    );
+    print("MASUK SINI 3");
+    updatePostProcess();
 
-    print("DATA IS ${result.length}");
-    if (result.isNotEmpty) {
-      modelResults.value = result;
-      imageBytes.value = await drawOnImage(modelResults);
-      closeLoadingDialog();
-      _showDraggableBottomSheet();
-      _timer?.cancel();
-      _stopwatch.stop();
-      _stopwatch.reset();
-    } else {
-      _timer?.cancel();
-      _stopwatch.stop();
-      _stopwatch.reset();
-      closeLoadingDialog();
-      showGeneralDialog(context: Get.context!, pageBuilder: (context, anim1, anim2) {
-        return AlertDialog(
-          title: const Text("Tidak ada bahan yang terdeteksi"),
-          content: const Text("Silahkan coba lagi"),
-          actions: [
-            TextButton(onPressed: () {
-              Get.back();
-            }, child: const Text("OK"))
-          ],
-        );
-      });
-    }
+
+    // final result = await _vision.yoloOnImage(
+    //   bytesList: byte,
+    //   imageHeight: image.height,
+    //   imageWidth: image.width,
+    //   iouThreshold: 0.2,
+    //   confThreshold: 0.2,
+    //   classThreshold: 0.2,
+    // );
+
+    // print("DATA IS ${result.length}");
+    // if (result.isNotEmpty) {
+    // } else {
+    //   _timer?.cancel();
+    //   _stopwatch.stop();
+    //   _stopwatch.reset();
+    //   closeLoadingDialog();
+    //   showGeneralDialog(context: Get.context!, pageBuilder: (context, anim1, anim2) {
+    //     return AlertDialog(
+    //       title: const Text("Tidak ada bahan yang terdeteksi"),
+    //       content: const Text("Silahkan coba lagi"),
+    //       actions: [
+    //         TextButton(onPressed: () {
+    //           Get.back();
+    //         }, child: const Text("OK"))
+    //       ],
+    //     );
+    //   });
+    // }
   }
+
 
   final translationDict = {
     'carrot': 'Wortel',
@@ -158,38 +237,38 @@ class RecipeDetectionViewModel extends BaseViewModel {
     detectedIngredients.refresh();
   }
 
-  Future<Uint8List> drawOnImage(List<Map<String, dynamic>> modelResults) async {
-    final image = imageFile.value;
-    if (image == null) {
-      return Uint8List(0);
-    }
-
-    final imgBytes = image.readAsBytesSync();
-    final img = await decodeImageFromList(Uint8List.fromList(imgBytes));
-
-    final recorder = PictureRecorder();
-    final canvas = Canvas(recorder);
-    canvas.drawImage(img, Offset.zero, Paint());
-    List<Ingredient> detectedObject =
-        drawBoxesOnCanvasAndReturnDetectedIngredient(
-      canvas: canvas,
-      screen: Size(img.width.toDouble(), img.height.toDouble()),
-      modelResults: modelResults,
-      imageHeight: imageHeight.value,
-      imageWidth: imageWidth.value,
-    );
-
-    detectedIngredients.value = translateIngredients(detectedObject, translationDict);
-
-    // detectedIngredients.value = detectedObject;
-
-    final picture = recorder.endRecording();
-    final imgWithBoxes = await picture.toImage(img.width, img.height);
-    final ByteData? byteData =
-        await imgWithBoxes.toByteData(format: ImageByteFormat.png);
-
-    return byteData!.buffer.asUint8List();
-  }
+  // Future<Uint8List> drawOnImage(List<Map<String, dynamic>> modelResults) async {
+  //   final image = imageFile.value;
+  //   if (image == null) {
+  //     return Uint8List(0);
+  //   }
+  //
+  //   final imgBytes = image.readAsBytesSync();
+  //   final img = await decodeImageFromList(Uint8List.fromList(imgBytes));
+  //
+  //   final recorder = PictureRecorder();
+  //   final canvas = Canvas(recorder);
+  //   canvas.drawImage(img, Offset.zero, Paint());
+  //   List<Ingredient> detectedObject =
+  //       drawBoxesOnCanvasAndReturnDetectedIngredient(
+  //     canvas: canvas,
+  //     screen: Size(img.width.toDouble(), img.height.toDouble()),
+  //     modelResults: modelResults,
+  //     imageHeight: imageHeight.value,
+  //     imageWidth: imageWidth.value,
+  //   );
+  //
+  //   detectedIngredients.value = translateIngredients(detectedObject, translationDict);
+  //
+  //   // detectedIngredients.value = detectedObject;
+  //
+  //   final picture = recorder.endRecording();
+  //   final imgWithBoxes = await picture.toImage(img.width, img.height);
+  //   final ByteData? byteData =
+  //       await imgWithBoxes.toByteData(format: ImageByteFormat.png);
+  //
+  //   return byteData!.buffer.asUint8List();
+  // }
 
   void _showDraggableBottomSheet() {
     isShowDetectionResult.value = true;
@@ -209,7 +288,8 @@ class RecipeDetectionViewModel extends BaseViewModel {
 
   @override
   void onClose() {
-    _vision.closeYoloModel();
     super.onClose();
   }
 }
+
+

@@ -1,4 +1,6 @@
-Telur
 Ayam
 Kentang
+Pisang
+Telur
+Tomat
 Wortel

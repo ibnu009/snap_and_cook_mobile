@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:snap_and_cook_mobile/data/remote/models/ingredient_model.dart';
 import 'package:snap_and_cook_mobile/presentation/recipe_detection/view_model/recipe_detection_view_model.dart';
@@ -43,9 +44,13 @@ class DetectionItemWidget extends GetView<RecipeDetectionViewModel> {
                   },
                   splashColor: Colors.transparent,
                   icon: const Icon(Icons.add_circle_outline)),
-              Text(
-                '${ingredient.quantity}',
-                style: TTCommonsTextStyles.textMd.textMedium(),
+              SizedBox(
+                width: 20.w,
+                child: Text(
+                  '${ingredient.quantity?.toInt()}',
+                  textAlign: TextAlign.center,
+                  style: TTCommonsTextStyles.textMd.textMedium(),
+                ),
               ),
               IconButton(
                   onPressed: () {

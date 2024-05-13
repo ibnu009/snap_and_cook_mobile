@@ -9,8 +9,9 @@ class UtensilsListWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 50,
+      height: 55,
       child: ListView.builder(
+        clipBehavior: Clip.none,
         itemBuilder: (context, index) {
           return UtensilItem(name: utensils[index], isSelected: false,);
         },

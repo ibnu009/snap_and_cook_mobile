@@ -22,12 +22,13 @@ class UtensilViewModel extends BaseViewModel {
   }
 
   void onSelectUtensil(Utensil utensil, int index){
-    if (utensil.isSelected == 0){
+    if (utensil.isSelected == null || utensil.isSelected == 0){
       utensil.isSelected = 1;
     } else{
       utensil.isSelected = 0;
     }
     utensils[index] = utensil;
+    utensils.refresh();
     _useCase.updateUtensil(utensil);
   }
 

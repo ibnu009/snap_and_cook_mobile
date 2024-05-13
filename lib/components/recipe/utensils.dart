@@ -11,8 +11,6 @@ class UtensilItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 32,
-      width: 108,
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(26),
@@ -22,7 +20,8 @@ class UtensilItem extends StatelessWidget {
         ),
         color: isSelected ? AppColors.copper : Colors.white
       ),
-      child: Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
         child: Text(
           name,
           style: TTCommonsTextStyles.textMd

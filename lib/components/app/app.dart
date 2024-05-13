@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-import '../../main.dart';
 import '../../routes/routes.dart';
 import '../../routes/routes/main_route.dart';
 import '../../styles/themes.dart';

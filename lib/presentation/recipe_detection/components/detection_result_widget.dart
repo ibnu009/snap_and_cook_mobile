@@ -67,7 +67,7 @@ class DetectionResultWidget extends GetView<RecipeDetectionViewModel> {
                                 isLeading: true,
                               ),
                             ),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: BasicButton(
                                 onPress: this.controller.navigateToRecipeDetectionResult,

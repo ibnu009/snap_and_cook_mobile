@@ -5,6 +5,5 @@ abstract class UtensilInterface {
 
   Future<List<String>> fetchSelectedUtensils();
 
-
   Future<void> updateUtensil(Utensil utensil);
 }

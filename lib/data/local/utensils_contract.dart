@@ -22,6 +22,12 @@ class UtensilContract {
     print('All Data saved!');
   }
 
+  Future<void> deleteAllUtensil() async {
+    final Database db = await _databaseHelper.database;
+    await db.delete(DatabaseConstant.utensilsTable);
+    print('All Data deleted!');
+  }
+
   Future<void> updateUtensil(Utensil utensil) async {
     final Database db = await _databaseHelper.database;
     await db.update(DatabaseConstant.utensilsTable, utensil.toJson(),

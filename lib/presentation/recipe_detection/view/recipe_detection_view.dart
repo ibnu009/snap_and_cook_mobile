@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:snap_and_cook_mobile/components/basic_button.dart';
@@ -5,6 +7,8 @@ import 'package:snap_and_cook_mobile/styles/colors.dart';
 import 'package:snap_and_cook_mobile/styles/text_styles/tt_commons_text_styles.dart';
 
 import '../../../components/appbar/basic_appbar.dart';
+import '../../../utils/detection/bbox.dart';
+import '../../../utils/detection/labels.dart';
 import '../../base/base_view.dart';
 import '../components/detection_result_widget.dart';
 import '../view_model/recipe_detection_view_model.dart';
@@ -82,12 +86,50 @@ class RecipeDetectionView extends BaseView<RecipeDetectionViewModel> {
 
   Widget _detection(BuildContext context) {
     return Obx(() {
-      if (controller.imageBytes.value != null) {
+      final bboxesColors = List<Color>.generate(
+        6,
+        (_) =>
+            Color((Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0),
+      );
+
+      final double displayWidth = MediaQuery.of(context).size.width;
+
+      double resizeFactor = 1;
+
+      if (controller.imageWidth.value != null &&
+          controller.imageHeight.value != null) {
+        double k1 = displayWidth / controller.imageWidth.value!;
+        double k2 =
+            controller.maxImageWidgetHeight / controller.imageHeight.value!;
+        resizeFactor = min(k1, k2);
+      }
+
+      List<Bbox> bboxesWidgets = [];
+      for (int i = 0; i < controller.bboxes.length; i++) {
+        final box = controller.bboxes[i];
+        final boxClass = controller.classes[i];
+        bboxesWidgets.add(
+          Bbox(
+              box[0] * resizeFactor,
+              box[1] * resizeFactor,
+              box[2] * resizeFactor,
+              box[3] * resizeFactor,
+              labels[boxClass],
+              controller.scores[i],
+              bboxesColors[boxClass]),
+        );
+      }
+
+      if (controller.imageFile.value != null) {
         return SizedBox(
-          width: Get.width,
-          child: Image.memory(
-            controller.imageBytes.value!,
-            fit: BoxFit.contain,
+          height: controller.maxImageWidgetHeight,
+          child: Center(
+            child: Stack(
+              children: [
+                if (controller.imageFile.value != null) Image.file(controller.imageFile.value!),
+                ...bboxesWidgets,
+              ],
+            ),
           ),
         );
       } else {
