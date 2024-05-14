@@ -17,9 +17,9 @@ RecipeModel _$RecipeModelFromJson(Map<String, dynamic> json) => RecipeModel(
       instructions: (json['instructions'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
-      prepTime: json['prepTime'] as int?,
-      cookTime: json['cookTime'] as int?,
-      servings: json['servings'] as int?,
+      prepTime: (json['prepTime'] as num?)?.toInt(),
+      cookTime: (json['cookTime'] as num?)?.toInt(),
+      servings: (json['servings'] as num?)?.toInt(),
       utensils: (json['utensils'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),

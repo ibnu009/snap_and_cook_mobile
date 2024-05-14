@@ -65,9 +65,14 @@ class RecipeDetectionViewModel extends BaseViewModel {
     hideLoadingContainer();
   }
 
+  void _resetBounding(){
+    classes.clear();
+    bboxes.clear();
+    scores.clear();
+  }
+
   Future<void> updatePostProcess() async {
     detectedIngredients.clear();
-    print("MASUK 1");
     if (inferenceOutput.isEmpty) {
       return;
     }
@@ -75,8 +80,6 @@ class RecipeDetectionViewModel extends BaseViewModel {
     List<int> newClasses = [];
     List<List<double>> newBboxes = [];
     List<double> newScores = [];
-
-    print("MASUK 2");
 
     /// Wait this process with loading
     (newClasses, newBboxes, newScores) = await model.postprocess(
@@ -86,7 +89,6 @@ class RecipeDetectionViewModel extends BaseViewModel {
       confidenceThreshold: confidenceThreshold,
       iouThreshold: iouThreshold,
     );
-    print("MASUK 3");
 
     debugPrint('Detected ${newClasses} classes');
     debugPrint('Detected ${newBboxes.length} boxed');
@@ -132,17 +134,11 @@ class RecipeDetectionViewModel extends BaseViewModel {
             const CustomCameraWidget(compressionQuality: 80),
       ),
     );
-    print("MASUK 9");
-
 
     if (data != null) {
-      print("MASUK 10");
-
       imageFile.value = data;
       // _startTimer();
-      await Future.delayed(const Duration(milliseconds: 500));
-      print("MASUK 11");
-
+      _resetBounding();
       _detectIngredients();
     }
   }
@@ -152,18 +148,14 @@ class RecipeDetectionViewModel extends BaseViewModel {
   }
 
   void _detectIngredients() async {
-    print("MASUK SINI 1");
-
-    // showLoadingDialog();
-
+    showLoadingDialog();
     final image = img.decodeImage(await imageFile.value!.readAsBytes())!;
-    print("MASUK SINI 2");
 
     imageHeight.value = image.height;
     imageWidth.value = image.width;
-    inferenceOutput.value = model.infer(image);
+    inferenceOutput.value = await model.inferenceImage(image);
+    closeLoadingDialog();
 
-    print("MASUK SINI 3");
     updatePostProcess();
 
 

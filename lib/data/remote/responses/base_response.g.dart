@@ -13,7 +13,7 @@ BaseResponse<T> _$BaseResponseFromJson<T>(
     BaseResponse<T>(
       data: _$nullableGenericFromJson(json['data'], fromJsonT),
     )
-      ..code = json['code'] as int?
+      ..code = (json['code'] as num?)?.toInt()
       ..message = json['message'] as String?;
 
 Map<String, dynamic> _$BaseResponseToJson<T>(

@@ -1,7 +1,10 @@
+import 'dart:isolate';
+
 import 'package:flutter/foundation.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart';
 
+import 'isolate_inference.dart';
 import 'nms.dart';
 
 class YoloModel {
@@ -10,6 +13,7 @@ class YoloModel {
   final int inHeight;
   final int numClasses;
   Interpreter? _interpreter;
+  late final IsolateInference isolateInference;
 
   YoloModel(
     this.modelPath,
@@ -20,11 +24,12 @@ class YoloModel {
 
   Future<void> init() async {
     _interpreter = await Interpreter.fromAsset(modelPath);
+    isolateInference = IsolateInference();
+    await isolateInference.start();
   }
 
   List<List<double>> infer(Image image) {
     assert(_interpreter != null, 'The model must be initialized');
-
     final imgResized = copyResize(image, width: inWidth, height: inHeight);
     final imgNormalized = List.generate(
       inHeight,
@@ -49,6 +54,21 @@ class YoloModel {
     debugPrint(
         'Prediction time: ${DateTime.now().millisecondsSinceEpoch - predictionTimeStart} ms');
     return output[0];
+  }
+
+  Future<List<List<double>>> _inference(InferenceModel inferenceModel) async {
+    ReceivePort responsePort = ReceivePort();
+    isolateInference.sendPort
+        .send(inferenceModel..responsePort = responsePort.sendPort);
+    // get inference result.
+    var results = await responsePort.first;
+    return results;
+  }
+
+  // inference still image
+  Future<List<List<double>>> inferenceImage(Image image) async {
+    var isolateModel = InferenceModel(image, _interpreter?.address ?? 0);
+    return _inference(isolateModel);
   }
 
   Future<(List<int>, List<List<double>>, List<double>)> postprocess(

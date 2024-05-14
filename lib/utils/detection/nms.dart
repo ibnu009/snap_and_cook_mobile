@@ -74,6 +74,7 @@ import 'dart:math';
       sortedBestScores.removeAt(index);
     }
   }
+
   return (finalClasses, finalBboxes, finalScores);
 }
 

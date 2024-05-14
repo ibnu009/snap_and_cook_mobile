@@ -7,9 +7,9 @@ part of 'utensil_model.dart';
 // **************************************************************************
 
 Utensil _$UtensilFromJson(Map<String, dynamic> json) => Utensil(
-      id: json['id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
       name: json['name'] as String?,
-      isSelected: json['isSelected'] as int?,
+      isSelected: (json['isSelected'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$UtensilToJson(Utensil instance) => <String, dynamic>{
