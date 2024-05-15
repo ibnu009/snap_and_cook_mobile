@@ -18,7 +18,7 @@ migrate_working_dir/
 
 production/.env
 staging/.env
-build-app.sh
+.build-app.sh
 assets/*.tflite
 
 # The .vscode folder contains launch configuration and tasks you configure in
