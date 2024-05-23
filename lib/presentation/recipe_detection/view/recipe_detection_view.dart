@@ -108,6 +108,7 @@ class RecipeDetectionView extends BaseView<RecipeDetectionViewModel> {
       for (int i = 0; i < controller.bboxes.length; i++) {
         final box = controller.bboxes[i];
         final boxClass = controller.classes[i];
+        print("boxClass ${boxClass}");
         bboxesWidgets.add(
           Bbox(
               box[0] * resizeFactor,

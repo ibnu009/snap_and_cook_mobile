@@ -75,8 +75,8 @@ class YoloModel {
     List<List<double>> unfilteredBboxes,
     int imageWidth,
     int imageHeight, {
-    double confidenceThreshold = 0.7,
-    double iouThreshold = 0.1,
+    double confidenceThreshold = 0.25,
+    double iouThreshold = 0.4,
   }) async {
     List<int> classes;
     List<List<double>> bboxes;
@@ -97,17 +97,4 @@ class YoloModel {
     }
     return (classes, bboxes, scores);
   }
-
-  // (List<int>, List<List<double>>, List<double>) inferAndPostprocess(
-  //   Image image, {
-  //   double confidenceThreshold = 0.7,
-  //   double iouThreshold = 0.1,
-  // }) =>
-  //     postprocess(
-  //       infer(image),
-  //       image.width,
-  //       image.height,
-  //       confidenceThreshold: confidenceThreshold,
-  //       iouThreshold: iouThreshold,
-  //     );
 }

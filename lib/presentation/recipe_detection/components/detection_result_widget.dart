@@ -44,6 +44,10 @@ class DetectionResultWidget extends GetView<RecipeDetectionViewModel> {
                         padding: const EdgeInsets.all(16.0),
                         child: Text('Bahan yang terdeteksi:', style: TTCommonsTextStyles.textMd.textBold(),),
                       ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Obx(() => Text(this.controller.detectionTime.value, style: TTCommonsTextStyles.textMd.textBold(),)),
+                      ),
                       Obx(() => ListView.builder(
                         itemCount: this.controller.detectedIngredients.length,
                         shrinkWrap: true,

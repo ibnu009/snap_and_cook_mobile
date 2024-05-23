@@ -11,11 +11,15 @@ import 'package:snap_and_cook_mobile/routes/routes/main_route.dart';
 import 'package:snap_and_cook_mobile/utils/detection/labels.dart';
 
 import '../../../components/camera/custom_camera.dart';
+import '../../../domain/use_case/utensils/utensil_use_case.dart';
 import '../../../utils/detection/yolo.dart';
 import '../../base/base_view_model.dart';
 
 class RecipeDetectionViewModel extends BaseViewModel {
   RxList<Map<String, dynamic>> modelResults = RxList();
+  final _utensilUseCase = UtensilUseCase();
+
+
   Rxn<File> imageFile = Rxn<File>();
   RxnInt imageHeight = RxnInt();
   RxnInt imageWidth = RxnInt();
@@ -31,23 +35,21 @@ class RecipeDetectionViewModel extends BaseViewModel {
 
   double maxImageWidgetHeight = 400;
 
-  double confidenceThreshold = 0.20;
-  double iouThreshold = 0.1;
+  double confidenceThreshold = 0.25;
+  double iouThreshold = 0.40;
 
   RxList<List<double>> inferenceOutput = RxList();
   RxList<int> classes = RxList();
   RxList<List<double>> bboxes = RxList();
   RxList<double> scores = RxList();
-
-  // int? imageWidth;
-  // int? imageHeight;
+  RxString detectionTime = RxString("");
 
   Rxn<Uint8List> imageBytes = Rxn<Uint8List>();
   DraggableScrollableController draggableScrollableController =
       DraggableScrollableController();
 
   final YoloModel model = YoloModel(
-    'assets/yolov8.tflite',
+    'assets/yolov8s_snapcook.tflite',
     inModelWidth,
     inModelHeight,
     numClasses,
@@ -69,6 +71,11 @@ class RecipeDetectionViewModel extends BaseViewModel {
     classes.clear();
     bboxes.clear();
     scores.clear();
+  }
+
+  Future<bool> _isUtensilEmpty() async {
+    var utensils = await _utensilUseCase.fetchSelectedUtensils();
+    return utensils.isEmpty;
   }
 
   Future<void> updatePostProcess() async {
@@ -128,6 +135,12 @@ class RecipeDetectionViewModel extends BaseViewModel {
   }
 
   Future<void> pickImage() async {
+    var isEmpty = await _isUtensilEmpty();
+    if (isEmpty){
+      Get.snackbar("Peringatan", "Kamu belum memilih alat memasak");
+      return;
+    }
+
     File? data = await Navigator.of(Get.context!).push(
       MaterialPageRoute<File>(
         builder: (BuildContext context) =>
@@ -153,7 +166,10 @@ class RecipeDetectionViewModel extends BaseViewModel {
 
     imageHeight.value = image.height;
     imageWidth.value = image.width;
+    int predictionTimeStart = DateTime.now().millisecondsSinceEpoch;
+
     inferenceOutput.value = await model.inferenceImage(image);
+    detectionTime.value = "Prediction time: ${DateTime.now().millisecondsSinceEpoch - predictionTimeStart} ms";
     closeLoadingDialog();
 
     updatePostProcess();
@@ -227,6 +243,8 @@ class RecipeDetectionViewModel extends BaseViewModel {
   void removeIngredient(int index) {
     detectedIngredients.removeAt(index);
     detectedIngredients.refresh();
+
+
   }
 
   // Future<Uint8List> drawOnImage(List<Map<String, dynamic>> modelResults) async {
