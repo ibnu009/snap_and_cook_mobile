@@ -75,24 +75,20 @@ class RecipeDetailView extends BaseView<RecipeDetailViewModel> {
             ),
             Obx(
               () => IngredientListWidget(
+                selectedIngredient: controller.selectedIngredientName,
                 ingredients: controller.recipe.value?.ingredients ?? [],
               ),
             ),
             const RecipeDetailDividerWidget(
               title: 'Alat Memasak',
             ),
-            UtensilsListWidget(utensils: controller.recipe.value?.utensils ?? [],),
+            UtensilsListWidget(
+              selectedUtensil: controller.selectedUtensil,
+              utensils: controller.recipe.value?.utensils ?? [],),
             const RecipeDetailDividerWidget(
               title: 'Langkah-langkah',
             ),
             StepListWidget(steps:controller.recipe.value?.instructions ?? [],),
-            const SizedBox(
-              height: 24,
-            ),
-            BasicButton(
-                onPress: () {},
-                bgColor: AppColors.copper,
-                text: 'Mulai Memasak'),
             const SizedBox(
               height: 24,
             ),

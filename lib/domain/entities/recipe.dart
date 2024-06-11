@@ -8,6 +8,8 @@ class Recipe {
   String? title;
   String? description;
   String? image;
+  String? difficulity;
+  double? confidence;
   List<Ingredient>? ingredients;
   List<String>? instructions;
   int? prepTime;
@@ -26,5 +28,7 @@ class Recipe {
     this.cookTime,
     this.servings,
     this.utensils,
+    this.difficulity,
+    this.confidence
   });
 }

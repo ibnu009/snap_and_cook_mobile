@@ -67,7 +67,7 @@ class RecipeFullItem extends StatelessWidget {
         const Icon(Icons.timer, size: 16),
         const SizedBox(width: 4),
         Text(
-          '${recipe.cookTime ?? 0} menit',
+          '${recipe.prepTime ?? 0} menit',
           style: TTCommonsTextStyles.textSm.textRegular(),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

@@ -7,8 +7,9 @@ import '../../../styles/colors.dart';
 
 class IngredientItem extends StatelessWidget {
   final Ingredient ingredient;
+  final bool? isSelected;
 
-  const IngredientItem({super.key, required this.ingredient});
+  const IngredientItem({super.key, required this.ingredient, this.isSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -58,12 +59,14 @@ class IngredientItem extends StatelessWidget {
   // }
 
   Widget _circleWidget() {
+    print("IS SLECTED = $isSelected");
+
     return Container(
       width: 8.0,
       height: 8.0,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppColors.copper,
+        color: (isSelected ?? false) ? Colors.green : AppColors.copper,
       ),
     );
   }

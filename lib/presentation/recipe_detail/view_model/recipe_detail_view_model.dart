@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 
+import '../../../data/remote/models/ingredient_model.dart';
 import '../../../domain/entities/recipe.dart';
 import '../../../domain/use_case/general/recipe_use_case.dart';
 import '../../../resources/arguments/argument_constants.dart';
@@ -8,7 +9,10 @@ import '../../base/base_view_model.dart';
 class RecipeDetailViewModel extends BaseViewModel {
   final _arguments = Get.arguments;
   String get recipeUuid => _arguments[ArgumentConstants.recipeUuid];
+  List<String> get selectedUtensil => _arguments[ArgumentConstants.selectedUtensil];
+  List<Ingredient> get selectedIngredient => _arguments[ArgumentConstants.selectedIngredient];
 
+  List<String> selectedIngredientName = [];
   final RecipeUseCase _recipeUseCase = RecipeUseCase();
   final Rxn<Recipe> recipe = Rxn<Recipe>();
 
@@ -16,6 +20,9 @@ class RecipeDetailViewModel extends BaseViewModel {
   void onInit() {
     super.onInit();
     _fetchRecipeDetail();
+    selectedIngredient.forEach((element) {
+      selectedIngredientName.add((element.name ?? '').toLowerCase());
+    });
   }
 
   Future<void> _fetchRecipeDetail() async {

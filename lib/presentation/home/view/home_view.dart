@@ -18,6 +18,7 @@ class HomeView extends BaseView<HomeViewModel> {
   @override
   Widget? floatingActionButton() {
     return FloatingActionButton(
+      key: controller.cameraKey,
       onPressed: () {
         controller.navigateToRecipeDetection();
       },
@@ -33,6 +34,11 @@ class HomeView extends BaseView<HomeViewModel> {
 
   @override
   Widget body(BuildContext context) {
+    controller.getPageContext(context);
+    return _buildBody();
+  }
+
+  Widget _buildBody(){
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,7 +49,7 @@ class HomeView extends BaseView<HomeViewModel> {
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Column(
               children: [
-                SizedBox(
+                const SizedBox(
                   height: 16,
                 ),
                 Row(
@@ -51,11 +57,12 @@ class HomeView extends BaseView<HomeViewModel> {
                     Text(
                       'Selamat Datang',
                       style: TTCommonsTextStyles.textLg.textRegular().copyWith(
-                            color: AppColors.heroWhite,
-                          ),
+                        color: AppColors.heroWhite,
+                      ),
                     ),
                     const Spacer(),
                     IconButton(
+                        key: controller.settingKey,
                         onPressed: controller.navigateToUtensilPage,
                         icon: const Icon(
                           Icons.settings,
@@ -64,6 +71,7 @@ class HomeView extends BaseView<HomeViewModel> {
                   ],
                 ),
                 SearchTextField(
+                  key: controller.searchKey,
                   controller: controller.searchController,
                   hintText: 'Cari Resep..',
                   inputType: TextInputType.text,
@@ -89,8 +97,8 @@ class HomeView extends BaseView<HomeViewModel> {
               ],
             ),
           ),
-          RecipeRecommendationWidget(),
-          SizedBox(height: 64,)
+          const RecipeRecommendationWidget(),
+          const SizedBox(height: 64,)
         ],
       ),
     );
@@ -128,7 +136,7 @@ class HomeView extends BaseView<HomeViewModel> {
           const SizedBox(
             height: 8,
           ),
-          Text('Data 1'),
+          const Text('Data 1'),
         ],
       ),
     );

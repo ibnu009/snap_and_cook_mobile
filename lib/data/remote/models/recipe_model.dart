@@ -12,6 +12,8 @@ class RecipeModel {
   String? title;
   String? description;
   String? image;
+  String? difficulity;
+  double? confidence;
   List<Ingredient>? ingredients;
   List<String>? instructions;
   int? prepTime;
@@ -49,6 +51,8 @@ class RecipeModel {
       cookTime: cookTime,
       servings: servings,
       utensils: utensils,
+      difficulity: difficulity,
+      confidence: confidence
     );
   }
 }

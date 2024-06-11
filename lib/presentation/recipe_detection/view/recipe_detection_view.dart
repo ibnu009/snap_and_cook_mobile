@@ -37,6 +37,7 @@ class RecipeDetectionView extends BaseView<RecipeDetectionViewModel> {
 
   @override
   Widget body(BuildContext context) {
+    controller.getPageContext(context);
     return Obx(() {
       if (controller.isShowDetectionResult.value) {
         return _detection(context);
@@ -69,7 +70,10 @@ class RecipeDetectionView extends BaseView<RecipeDetectionViewModel> {
           ),
           const SizedBox(height: 16),
           BasicButton(
-              onPress: controller.pickImage, height: 42, text: "Ambil Gambar")
+              key: controller.buttonKey,
+              onPress: controller.pickImage,
+              height: 42,
+              text: "Ambil Gambar")
         ],
       ),
     ));
@@ -86,11 +90,14 @@ class RecipeDetectionView extends BaseView<RecipeDetectionViewModel> {
 
   Widget _detection(BuildContext context) {
     return Obx(() {
-      final bboxesColors = List<Color>.generate(
-        6,
-        (_) =>
-            Color((Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0),
-      );
+      final bboxesColors = [
+        Colors.green,
+        Colors.blue,
+        Colors.redAccent,
+        Colors.purpleAccent,
+        Colors.amberAccent,
+        Colors.tealAccent
+      ];
 
       final double displayWidth = MediaQuery.of(context).size.width;
 
@@ -108,7 +115,6 @@ class RecipeDetectionView extends BaseView<RecipeDetectionViewModel> {
       for (int i = 0; i < controller.bboxes.length; i++) {
         final box = controller.bboxes[i];
         final boxClass = controller.classes[i];
-        print("boxClass ${boxClass}");
         bboxesWidgets.add(
           Bbox(
               box[0] * resizeFactor,
@@ -127,7 +133,8 @@ class RecipeDetectionView extends BaseView<RecipeDetectionViewModel> {
           child: Center(
             child: Stack(
               children: [
-                if (controller.imageFile.value != null) Image.file(controller.imageFile.value!),
+                if (controller.imageFile.value != null)
+                  Image.file(controller.imageFile.value!),
                 ...bboxesWidgets,
               ],
             ),

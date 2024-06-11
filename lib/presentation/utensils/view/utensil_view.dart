@@ -21,18 +21,31 @@ class UtensilView extends BaseView<UtensilViewModel> {
 
   @override
   Widget body(BuildContext context) {
+    controller.getPageContext(context);
     return Obx(
-      () => Wrap(
+      () => Stack(
         children: [
-          for (int i = 0; i < controller.utensils.length; i++)
-            GestureDetector(
-              onTap: () {
-                controller.onSelectUtensil(controller.utensils[i], i);
-              },
-              child: UtensilItem(
-                  name: controller.utensils[i].name ?? '',
-                  isSelected: controller.utensils[i].isSelected == 1),
-            )
+          Wrap(
+            children: [
+              for (int i = 0; i < controller.utensils.length; i++)
+                GestureDetector(
+                  onTap: () {
+                    controller.onSelectUtensil(controller.utensils[i], i);
+                  },
+                  child: UtensilItem(
+                      name: controller.utensils[i].name ?? '',
+                      isSelected: controller.utensils[i].isSelected == 1),
+                )
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SizedBox(
+              key: controller.buttonKey,
+              height: 20,
+              width: 60,
+            ),
+          )
         ],
       ),
     );

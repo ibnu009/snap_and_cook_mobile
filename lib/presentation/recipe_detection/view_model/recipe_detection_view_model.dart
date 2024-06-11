@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -9,15 +10,20 @@ import 'package:snap_and_cook_mobile/data/remote/models/ingredient_model.dart';
 import 'package:snap_and_cook_mobile/resources/arguments/argument_constants.dart';
 import 'package:snap_and_cook_mobile/routes/routes/main_route.dart';
 import 'package:snap_and_cook_mobile/utils/detection/labels.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../../../components/camera/custom_camera.dart';
 import '../../../domain/use_case/utensils/utensil_use_case.dart';
+import '../../../resources/constants/session_constants.dart';
 import '../../../utils/detection/yolo.dart';
+import '../../../utils/session/session.dart';
 import '../../base/base_view_model.dart';
+import '../components/tutorial_detection_idle_items.dart';
 
 class RecipeDetectionViewModel extends BaseViewModel {
   RxList<Map<String, dynamic>> modelResults = RxList();
   final _utensilUseCase = UtensilUseCase();
+  final buttonKey = GlobalKey();
 
 
   Rxn<File> imageFile = Rxn<File>();
@@ -35,8 +41,8 @@ class RecipeDetectionViewModel extends BaseViewModel {
 
   double maxImageWidgetHeight = 400;
 
-  double confidenceThreshold = 0.25;
-  double iouThreshold = 0.40;
+  double confidenceThreshold = 0.3;
+  double iouThreshold = 0.4;
 
   RxList<List<double>> inferenceOutput = RxList();
   RxList<int> classes = RxList();
@@ -49,16 +55,62 @@ class RecipeDetectionViewModel extends BaseViewModel {
       DraggableScrollableController();
 
   final YoloModel model = YoloModel(
-    'assets/yolov8s_snapcook.tflite',
+    'assets/yolov8m_snapcook.tflite',
     inModelWidth,
     inModelHeight,
     numClasses,
   );
 
+  late TutorialCoachMark tutorialCoachMark;
+
+  BuildContext? pageContext;
+
   @override
   void onInit() {
     super.onInit();
     _loadMachineLearningModel();
+    createTutorial();
+    showTutorial();
+  }
+
+  void getPageContext(BuildContext context){
+    pageContext = context;
+  }
+
+  void createTutorial() {
+    tutorialCoachMark = TutorialCoachMark(
+      targets: createDetectionIdleTutorialTargets(
+          keyBottomNavigation1: buttonKey,),
+      colorShadow: Colors.black38,
+      textSkip: "SKIP",
+      paddingFocus: 10,
+      opacityShadow: 0.5,
+      imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+      onFinish: () {
+        print("finish");
+        Session.set(SessionConstants.isAlreadyOnBoardingDetectIngredient, "yes");
+      },
+      onClickTarget: (target) {
+      },
+      onClickTargetWithTapPosition: (target, tapDetails) {},
+      onClickOverlay: (target) {},
+      onSkip: () {
+        Session.set(SessionConstants.isAlreadyOnBoardingDetectIngredient, "yes");
+        return true;
+      },
+    );
+  }
+
+  Future<void> showTutorial() async {
+    Future.delayed(const Duration(seconds: 1));
+    String? isOnBoarded = await Session.get(SessionConstants.isAlreadyOnBoardingDetectIngredient);
+    if (isOnBoarded != null) {
+      return;
+    }
+
+    if (pageContext?.mounted ?? false){
+      tutorialCoachMark.show(context: pageContext!);
+    }
   }
 
   Future<void> _loadMachineLearningModel() async {

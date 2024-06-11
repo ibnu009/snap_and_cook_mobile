@@ -48,7 +48,11 @@ class RecipeDetectionResultViewModel extends BaseViewModel {
 
   void navigateToRecipeDetail(String uuid) {
     Get.toNamed(MainRoute.detail,
-        arguments: {ArgumentConstants.recipeUuid: uuid});
+        arguments: {
+      ArgumentConstants.recipeUuid: uuid,
+      ArgumentConstants.selectedIngredient: ingredients,
+      ArgumentConstants.selectedUtensil: selectedUtensil.value
+        });
   }
 
   @override
