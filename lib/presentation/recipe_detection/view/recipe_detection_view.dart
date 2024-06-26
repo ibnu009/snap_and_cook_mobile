@@ -96,7 +96,10 @@ class RecipeDetectionView extends BaseView<RecipeDetectionViewModel> {
         Colors.redAccent,
         Colors.purpleAccent,
         Colors.amberAccent,
-        Colors.tealAccent
+        Colors.tealAccent,
+        Colors.tealAccent,
+        Colors.tealAccent,
+        Colors.tealAccent,
       ];
 
       final double displayWidth = MediaQuery.of(context).size.width;
@@ -112,18 +115,35 @@ class RecipeDetectionView extends BaseView<RecipeDetectionViewModel> {
       }
 
       List<Bbox> bboxesWidgets = [];
-      for (int i = 0; i < controller.bboxes.length; i++) {
-        final box = controller.bboxes[i];
-        final boxClass = controller.classes[i];
+      for (int i = 0; i < controller.remoteDetectionResult.length; i++) {
+
+        final detection = controller.remoteDetectionResult[i];
+        String boxClass = detection.name;
+        if (boxClass.contains("Tidak Layak")){
+          boxClass = "Bahan Tidak Layak";
+        }
+        final boxId = detection.datumClass;
+
+        final xcenter = detection.xcenter * controller.imageWidth.value!;
+        final ycenter = detection.ycenter * controller.imageHeight.value!;
+        final width = detection.width * controller.imageWidth.value!;
+        final height = detection.height * controller.imageHeight.value!;
+
+        final left = (xcenter - width / 2) * resizeFactor;
+        final top = (ycenter - height / 2) * resizeFactor;
+        final right = (xcenter + width / 2) * resizeFactor;
+        final bottom = (ycenter + height / 2) * resizeFactor;
+
         bboxesWidgets.add(
           Bbox(
-              box[0] * resizeFactor,
-              box[1] * resizeFactor,
-              box[2] * resizeFactor,
-              box[3] * resizeFactor,
-              labels[boxClass],
-              controller.scores[i],
-              bboxesColors[boxClass]),
+            left,
+            top,
+            right,
+            bottom,
+            boxClass,
+            detection.confidence,
+            bboxesColors[boxId],
+          ),
         );
       }
 
@@ -133,8 +153,7 @@ class RecipeDetectionView extends BaseView<RecipeDetectionViewModel> {
           child: Center(
             child: Stack(
               children: [
-                if (controller.imageFile.value != null)
-                  Image.file(controller.imageFile.value!),
+                Image.file(controller.imageFile.value!),
                 ...bboxesWidgets,
               ],
             ),

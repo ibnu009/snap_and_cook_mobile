@@ -48,17 +48,7 @@ class DetectionResultWidget extends GetView<RecipeDetectionViewModel> {
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: Obx(() => Text(this.controller.detectionTime.value, style: TTCommonsTextStyles.textMd.textBold(),)),
                       ),
-                      Obx(() => ListView.builder(
-                        itemCount: this.controller.detectedIngredients.length,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemBuilder: (context, index) {
-                          Ingredient ingredient =
-                          this.controller.detectedIngredients[index];
-                          return DetectionItemWidget(
-                              index: index, ingredient: ingredient);
-                        },
-                      )),
+                      _detectionItems(),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24),
                         child: Row(
@@ -92,5 +82,28 @@ class DetectionResultWidget extends GetView<RecipeDetectionViewModel> {
         );
       },
     );
+  }
+
+  Widget _detectionItems() {
+   return Obx(() {
+
+     if (controller.detectedIngredients.isEmpty) {
+       return const Center(
+         child: Text('Tidak ada bahan yang terdeteksi'),
+       );
+     }
+
+     return ListView.builder(
+       itemCount: controller.detectedIngredients.length,
+       shrinkWrap: true,
+       physics: const NeverScrollableScrollPhysics(),
+       itemBuilder: (context, index) {
+         Ingredient ingredient =
+         controller.detectedIngredients[index];
+         return DetectionItemWidget(
+             index: index, ingredient: ingredient);
+       },
+     );
+   });
   }
 }

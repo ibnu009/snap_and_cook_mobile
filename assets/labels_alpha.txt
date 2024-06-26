@@ -1,6 +1,10 @@
 Ayam
+Ayam Tidak Layak Konsumsi
 Kentang
+Kentang Tidak Layak Konsumsi
 Pisang
+Pisang Tidak Layak Konsumsi
 Telur
 Tomat
+Tomat Tidak Layak Konsumsi
 Wortel

@@ -9,8 +9,8 @@ import '../../base/base_view_model.dart';
 class RecipeDetailViewModel extends BaseViewModel {
   final _arguments = Get.arguments;
   String get recipeUuid => _arguments[ArgumentConstants.recipeUuid];
-  List<String> get selectedUtensil => _arguments[ArgumentConstants.selectedUtensil];
-  List<Ingredient> get selectedIngredient => _arguments[ArgumentConstants.selectedIngredient];
+  List<String>? selectedUtensil;
+  List<Ingredient>? selectedIngredient;
 
   List<String> selectedIngredientName = [];
   final RecipeUseCase _recipeUseCase = RecipeUseCase();
@@ -20,9 +20,20 @@ class RecipeDetailViewModel extends BaseViewModel {
   void onInit() {
     super.onInit();
     _fetchRecipeDetail();
-    selectedIngredient.forEach((element) {
+    init();
+
+    selectedIngredient?.forEach((element) {
       selectedIngredientName.add((element.name ?? '').toLowerCase());
     });
+  }
+
+  void init() {
+    try {
+      selectedUtensil = _arguments[ArgumentConstants.selectedUtensil];
+      selectedIngredient = _arguments[ArgumentConstants.selectedIngredient];
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<void> _fetchRecipeDetail() async {

@@ -31,9 +31,9 @@ class IsolateInference {
     await for (final InferenceModel isolateModel in port) {
       image_lib.Image? image;
       image = isolateModel.image;
-      int inModelWidth = 640;
-      int inModelHeight = 640;
-      int numClasses = 6;
+      int inModelWidth = 320;
+      int inModelHeight = 320;
+      int numClasses = 10;
 
       final imgResized = image_lib.copyResize(image!,
           width: inModelWidth, height: inModelHeight);
@@ -53,7 +53,7 @@ class IsolateInference {
       // 4 + 6: left, top, right, bottom and probabilities for each class
       // 8400: num predictions
       final output = [
-        List<List<double>>.filled(4 + numClasses, List<double>.filled(8400, 0))
+        List<List<double>>.filled(4 + numClasses, List<double>.filled(2100, 0))
       ];
       int predictionTimeStart = DateTime.now().millisecondsSinceEpoch;
       Interpreter interpreter =

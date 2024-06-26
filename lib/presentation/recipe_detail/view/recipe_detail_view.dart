@@ -83,7 +83,7 @@ class RecipeDetailView extends BaseView<RecipeDetailViewModel> {
               title: 'Alat Memasak',
             ),
             UtensilsListWidget(
-              selectedUtensil: controller.selectedUtensil,
+              selectedUtensil: controller.selectedUtensil ?? [],
               utensils: controller.recipe.value?.utensils ?? [],),
             const RecipeDetailDividerWidget(
               title: 'Langkah-langkah',

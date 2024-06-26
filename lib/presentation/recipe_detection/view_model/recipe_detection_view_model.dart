@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image/image.dart' as img;
 import 'package:snap_and_cook_mobile/data/remote/models/ingredient_model.dart';
+import 'package:snap_and_cook_mobile/data/remote/models/remote_detection_model.dart';
+import 'package:snap_and_cook_mobile/domain/use_case/general/recipe_use_case.dart';
 import 'package:snap_and_cook_mobile/resources/arguments/argument_constants.dart';
 import 'package:snap_and_cook_mobile/routes/routes/main_route.dart';
 import 'package:snap_and_cook_mobile/utils/detection/labels.dart';
@@ -23,20 +25,24 @@ import '../components/tutorial_detection_idle_items.dart';
 class RecipeDetectionViewModel extends BaseViewModel {
   RxList<Map<String, dynamic>> modelResults = RxList();
   final _utensilUseCase = UtensilUseCase();
+  final _recipeUseCase = RecipeUseCase();
+
   final buttonKey = GlobalKey();
 
-
   Rxn<File> imageFile = Rxn<File>();
+  RxList<RemoteDetection> remoteDetectionResult = RxList();
   RxnInt imageHeight = RxnInt();
   RxnInt imageWidth = RxnInt();
   RxBool isLoadingModel = RxBool(false);
   RxBool isProcessingModel = RxBool(false);
   RxBool isShowDetectionResult = RxBool(false);
   RxList<Ingredient> detectedIngredients = RxList();
+  RxList<Ingredient> detectedRottenIngredients = RxList();
+
   final Stopwatch _stopwatch = Stopwatch();
 
-  static const inModelWidth = 640;
-  static const inModelHeight = 640;
+  static const inModelWidth = 320;
+  static const inModelHeight = 320;
   static const numClasses = 6;
 
   double maxImageWidgetHeight = 400;
@@ -55,7 +61,7 @@ class RecipeDetectionViewModel extends BaseViewModel {
       DraggableScrollableController();
 
   final YoloModel model = YoloModel(
-    'assets/yolov8m_snapcook.tflite',
+    'assets/snapcook_14.tflite',
     inModelWidth,
     inModelHeight,
     numClasses,
@@ -73,14 +79,36 @@ class RecipeDetectionViewModel extends BaseViewModel {
     showTutorial();
   }
 
-  void getPageContext(BuildContext context){
+  void getPageContext(BuildContext context) {
     pageContext = context;
+  }
+
+  Future<void> _getResult() async {
+    showLoadingDialog();
+    final image = img.decodeImage(await imageFile.value!.readAsBytes())!;
+
+    imageHeight.value = image.height;
+    imageWidth.value = image.width;
+
+    var data =
+        await _recipeUseCase.detectIngredient(cancelToken, imageFile.value!);
+    data.fold((l) {
+      print("Error is ${l}");
+      isShowDetectionResult.value = false;
+      closeLoadingDialog();
+    }, (r) {
+      remoteDetectionResult.value = r.data ?? [];
+      isShowDetectionResult.value = true;
+      _assignIngredients(r.data ?? []);
+      closeLoadingDialog();
+    });
   }
 
   void createTutorial() {
     tutorialCoachMark = TutorialCoachMark(
       targets: createDetectionIdleTutorialTargets(
-          keyBottomNavigation1: buttonKey,),
+        keyBottomNavigation1: buttonKey,
+      ),
       colorShadow: Colors.black38,
       textSkip: "SKIP",
       paddingFocus: 10,
@@ -88,14 +116,15 @@ class RecipeDetectionViewModel extends BaseViewModel {
       imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
       onFinish: () {
         print("finish");
-        Session.set(SessionConstants.isAlreadyOnBoardingDetectIngredient, "yes");
+        Session.set(
+            SessionConstants.isAlreadyOnBoardingDetectIngredient, "yes");
       },
-      onClickTarget: (target) {
-      },
+      onClickTarget: (target) {},
       onClickTargetWithTapPosition: (target, tapDetails) {},
       onClickOverlay: (target) {},
       onSkip: () {
-        Session.set(SessionConstants.isAlreadyOnBoardingDetectIngredient, "yes");
+        Session.set(
+            SessionConstants.isAlreadyOnBoardingDetectIngredient, "yes");
         return true;
       },
     );
@@ -103,23 +132,24 @@ class RecipeDetectionViewModel extends BaseViewModel {
 
   Future<void> showTutorial() async {
     Future.delayed(const Duration(seconds: 1));
-    String? isOnBoarded = await Session.get(SessionConstants.isAlreadyOnBoardingDetectIngredient);
+    String? isOnBoarded =
+        await Session.get(SessionConstants.isAlreadyOnBoardingDetectIngredient);
     if (isOnBoarded != null) {
       return;
     }
 
-    if (pageContext?.mounted ?? false){
+    if (pageContext?.mounted ?? false) {
       tutorialCoachMark.show(context: pageContext!);
     }
   }
 
   Future<void> _loadMachineLearningModel() async {
-    showLoadingContainer();
-    await model.init();
-    hideLoadingContainer();
+    // showLoadingContainer();
+    // await model.init();
+    // hideLoadingContainer();
   }
 
-  void _resetBounding(){
+  void _resetBounding() {
     classes.clear();
     bboxes.clear();
     scores.clear();
@@ -159,7 +189,7 @@ class RecipeDetectionViewModel extends BaseViewModel {
     hideLoadingContainer();
 
     for (var element in newClasses) {
-      if (detectedIngredients.isEmpty){
+      if (detectedIngredients.isEmpty) {
         detectedIngredients.add(Ingredient(
           name: labels[element],
           quantity: 1,
@@ -168,7 +198,8 @@ class RecipeDetectionViewModel extends BaseViewModel {
         bool isExist = false;
         for (int i = 0; i < detectedIngredients.length; i++) {
           if (detectedIngredients[i].name == labels[element]) {
-            detectedIngredients[i].quantity = detectedIngredients[i].quantity! + 1;
+            detectedIngredients[i].quantity =
+                detectedIngredients[i].quantity! + 1;
             isExist = true;
             break;
           }
@@ -186,9 +217,77 @@ class RecipeDetectionViewModel extends BaseViewModel {
     _showDraggableBottomSheet();
   }
 
+  void _assignIngredients(List<RemoteDetection> detections) {
+    detectedIngredients.clear();
+    detectedRottenIngredients.clear();
+    for (var element in detections) {
+      if (detectedIngredients.isEmpty) {
+        if (_checkIfIngredientRotten(element)){
+          _storeIngredientRotten(element);
+        } else {
+          detectedIngredients.add(Ingredient(
+            name: element.name,
+            quantity: 1,
+          ));
+        }
+      } else {
+        if (_checkIfIngredientRotten(element)){
+          _storeIngredientRotten(element);
+        } else {
+          bool isExist = false;
+          for (int i = 0; i < detectedIngredients.length; i++) {
+            if (detectedIngredients[i].name == element.name) {
+              detectedIngredients[i].quantity =
+                  detectedIngredients[i].quantity! + 1;
+              isExist = true;
+              break;
+            }
+          }
+          if (!isExist) {
+            detectedIngredients.add(Ingredient(
+              name: element.name,
+              quantity: 1,
+            ));
+          }
+        }
+      }
+    }
+  }
+
+  bool _checkIfIngredientRotten(RemoteDetection detection){
+    return detection.name.contains("Tidak");
+  }
+
+  void _storeIngredientRotten(RemoteDetection detection){
+    if (detection.name.contains("Tidak")) {
+      if (detectedRottenIngredients.isEmpty) {
+        detectedRottenIngredients.add(Ingredient(
+          name: detection.name,
+          quantity: 1,
+        ));
+      } else {
+        bool isExist = false;
+        for (int i = 0; i < detectedRottenIngredients.length; i++) {
+          if (detectedRottenIngredients[i].name == detection.name) {
+            detectedRottenIngredients[i].quantity =
+                detectedRottenIngredients[i].quantity! + 1;
+            isExist = true;
+            break;
+          }
+        }
+        if (!isExist) {
+          detectedRottenIngredients.add(Ingredient(
+            name: detection.name,
+            quantity: 1,
+          ));
+        }
+      }
+    }
+  }
+
   Future<void> pickImage() async {
     var isEmpty = await _isUtensilEmpty();
-    if (isEmpty){
+    if (isEmpty) {
       Get.snackbar("Peringatan", "Kamu belum memilih alat memasak");
       return;
     }
@@ -204,7 +303,8 @@ class RecipeDetectionViewModel extends BaseViewModel {
       imageFile.value = data;
       // _startTimer();
       _resetBounding();
-      _detectIngredients();
+      // _detectIngredients();
+      _getResult();
     }
   }
 
@@ -221,11 +321,12 @@ class RecipeDetectionViewModel extends BaseViewModel {
     int predictionTimeStart = DateTime.now().millisecondsSinceEpoch;
 
     inferenceOutput.value = await model.inferenceImage(image);
-    detectionTime.value = "Prediction time: ${DateTime.now().millisecondsSinceEpoch - predictionTimeStart} ms";
+    print("VALUE IS ${inferenceOutput.value}");
+    detectionTime.value =
+        "Prediction time: ${DateTime.now().millisecondsSinceEpoch - predictionTimeStart} ms";
     closeLoadingDialog();
 
     updatePostProcess();
-
 
     // final result = await _vision.yoloOnImage(
     //   bytesList: byte,
@@ -257,12 +358,12 @@ class RecipeDetectionViewModel extends BaseViewModel {
     // }
   }
 
-
   final translationDict = {
     'carrot': 'Wortel',
   };
 
-  Ingredient translateIngredient(Ingredient ingredient, Map<String, String> translationDict) {
+  Ingredient translateIngredient(
+      Ingredient ingredient, Map<String, String> translationDict) {
     final translatedName = translationDict[ingredient.name] ?? ingredient.name;
     return Ingredient(
       name: translatedName,
@@ -271,13 +372,16 @@ class RecipeDetectionViewModel extends BaseViewModel {
     );
   }
 
-  List<Ingredient> translateIngredients(List<Ingredient> ingredients, Map<String, String> translationDict) {
-    return ingredients.map((ingredient) => translateIngredient(ingredient, translationDict)).toList();
+  List<Ingredient> translateIngredients(
+      List<Ingredient> ingredients, Map<String, String> translationDict) {
+    return ingredients
+        .map((ingredient) => translateIngredient(ingredient, translationDict))
+        .toList();
   }
 
-  // List<String> translateIngredients(List<Ingredient> originalList) {
-  //   return originalList.map((Ingredient item) => item.name?.replaceAll('carrot', 'wortel')).toList();
-  // }
+// List<String> translateIngredients(List<Ingredient> originalList) {
+//   return originalList.map((Ingredient item) => item.name?.replaceAll('carrot', 'wortel')).toList();
+// }
 
   void incrementIngredientQuantity(int index) {
     detectedIngredients[index].quantity =
@@ -295,42 +399,40 @@ class RecipeDetectionViewModel extends BaseViewModel {
   void removeIngredient(int index) {
     detectedIngredients.removeAt(index);
     detectedIngredients.refresh();
-
-
   }
 
-  // Future<Uint8List> drawOnImage(List<Map<String, dynamic>> modelResults) async {
-  //   final image = imageFile.value;
-  //   if (image == null) {
-  //     return Uint8List(0);
-  //   }
-  //
-  //   final imgBytes = image.readAsBytesSync();
-  //   final img = await decodeImageFromList(Uint8List.fromList(imgBytes));
-  //
-  //   final recorder = PictureRecorder();
-  //   final canvas = Canvas(recorder);
-  //   canvas.drawImage(img, Offset.zero, Paint());
-  //   List<Ingredient> detectedObject =
-  //       drawBoxesOnCanvasAndReturnDetectedIngredient(
-  //     canvas: canvas,
-  //     screen: Size(img.width.toDouble(), img.height.toDouble()),
-  //     modelResults: modelResults,
-  //     imageHeight: imageHeight.value,
-  //     imageWidth: imageWidth.value,
-  //   );
-  //
-  //   detectedIngredients.value = translateIngredients(detectedObject, translationDict);
-  //
-  //   // detectedIngredients.value = detectedObject;
-  //
-  //   final picture = recorder.endRecording();
-  //   final imgWithBoxes = await picture.toImage(img.width, img.height);
-  //   final ByteData? byteData =
-  //       await imgWithBoxes.toByteData(format: ImageByteFormat.png);
-  //
-  //   return byteData!.buffer.asUint8List();
-  // }
+// Future<Uint8List> drawOnImage(List<Map<String, dynamic>> modelResults) async {
+//   final image = imageFile.value;
+//   if (image == null) {
+//     return Uint8List(0);
+//   }
+//
+//   final imgBytes = image.readAsBytesSync();
+//   final img = await decodeImageFromList(Uint8List.fromList(imgBytes));
+//
+//   final recorder = PictureRecorder();
+//   final canvas = Canvas(recorder);
+//   canvas.drawImage(img, Offset.zero, Paint());
+//   List<Ingredient> detectedObject =
+//       drawBoxesOnCanvasAndReturnDetectedIngredient(
+//     canvas: canvas,
+//     screen: Size(img.width.toDouble(), img.height.toDouble()),
+//     modelResults: modelResults,
+//     imageHeight: imageHeight.value,
+//     imageWidth: imageWidth.value,
+//   );
+//
+//   detectedIngredients.value = translateIngredients(detectedObject, translationDict);
+//
+//   // detectedIngredients.value = detectedObject;
+//
+//   final picture = recorder.endRecording();
+//   final imgWithBoxes = await picture.toImage(img.width, img.height);
+//   final ByteData? byteData =
+//       await imgWithBoxes.toByteData(format: ImageByteFormat.png);
+//
+//   return byteData!.buffer.asUint8List();
+// }
 
   void _showDraggableBottomSheet() {
     isShowDetectionResult.value = true;
@@ -353,5 +455,3 @@ class RecipeDetectionViewModel extends BaseViewModel {
     super.onClose();
   }
 }
-
-

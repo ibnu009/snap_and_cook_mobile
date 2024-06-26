@@ -23,10 +23,10 @@ class Bbox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: y - height / 2,
-      left: x - width / 2,
-      width: width,
-      height: height,
+      top: y,
+      left: x,
+      width: width - x,
+      height: height - y,
       child: Container(
         decoration: BoxDecoration(
           border: Border.all(color: color, width: 3),

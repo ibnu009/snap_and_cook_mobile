@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:snap_and_cook_mobile/data/remote/models/ingredient_model.dart';
 import 'package:snap_and_cook_mobile/data/remote/requests/detect_ingredient_request.dart';
+import 'package:snap_and_cook_mobile/data/remote/responses/remote_detection_response.dart';
 
 import '../../../data/remote/services/recipe_service.dart';
 import '../../entities/recipe.dart';
@@ -19,7 +22,8 @@ class RecipeUseCase implements RecipeInterface {
     String? search,
   }) async {
     try {
-      final response = await service.getAllRecipes(cancelToken, size, currentPage, search);
+      final response =
+          await service.getAllRecipes(cancelToken, size, currentPage, search);
       List<Recipe> recipes = [];
       response.data?.forEach((element) {
         recipes.add(element.toEntity());
@@ -64,6 +68,23 @@ class RecipeUseCase implements RecipeInterface {
     } catch (e) {
       print("Error is ${e}");
       return Left(DioError(requestOptions: RequestOptions(path: "")));
+    }
+  }
+
+  @override
+  Future<Either<DioError, RemoteDetectionResponse>> detectIngredient(
+      CancelToken cancelToken, File file) async {
+    try {
+      return Right(await service.detectIngredient(
+        cancelToken,
+        'vwySn4qphLej0XzHwW91',
+        '640',
+        '0.3',
+        '0.4',
+        file,
+      ));
+    } on DioError catch (e) {
+      return Left(e);
     }
   }
 }

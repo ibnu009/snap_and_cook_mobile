@@ -11,7 +11,6 @@ class RecipeItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("IMAGE IS ${recipe.image}");
     return GestureDetector(
       onTap: () {
         onTap(recipe.uuid ?? '');
@@ -53,8 +52,6 @@ class RecipeItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-
-
           ],
         ),
       ),
